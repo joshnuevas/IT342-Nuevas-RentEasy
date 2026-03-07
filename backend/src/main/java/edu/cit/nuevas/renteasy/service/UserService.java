@@ -33,11 +33,10 @@ public class UserService {
         }
 
         User user = new User();
-        user.setUsername(request.username);
+        user.setFirstName(request.firstName);
+        user.setLastName(request.lastName);
         user.setEmail(request.email);
         user.setPassword(passwordEncoder.encode(request.password));
-        user.setPhone(request.phone);
-        user.setAddress(request.address);
 
         userRepo.save(user);
 
