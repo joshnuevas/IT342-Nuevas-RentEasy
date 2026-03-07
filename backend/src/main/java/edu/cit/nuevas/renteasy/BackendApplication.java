@@ -1,4 +1,4 @@
-package com.it342.backend;
+package edu.cit.nuevas.renteasy;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

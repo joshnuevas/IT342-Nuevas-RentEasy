@@ -1,4 +1,4 @@
-package com.it342.backend.model;
+package edu.cit.nuevas.renteasy.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package com.it342.backend.config;
+package edu.cit.nuevas.renteasy.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

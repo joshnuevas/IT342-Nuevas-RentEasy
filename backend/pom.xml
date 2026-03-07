@@ -8,15 +8,15 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.2</version>
+        <version>3.5.0</version>
         <relativePath/>
     </parent>
 
-    <groupId>com.it342</groupId>
-    <artifactId>backend</artifactId>
+    <groupId>edu.cit.nuevas</groupId>
+    <artifactId>renteasy</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>backend</name>
-    <description>Spring Boot Backend for User Registration and Authentication</description>
+    <name>renteasy</name>
+    <description>RentEasy REST API Backend</description>
 
     <properties>
         <java.version>21</java.version>

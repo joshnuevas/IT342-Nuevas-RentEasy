@@ -1,4 +1,4 @@
-package com.it342.backend.controller;
+package edu.cit.nuevas.renteasy.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.it342.backend.dto.LoginRequest;
-import com.it342.backend.dto.RegisterRequest;
-import com.it342.backend.service.UserService;
+import edu.cit.nuevas.renteasy.dto.LoginRequest;
+import edu.cit.nuevas.renteasy.dto.RegisterRequest;
+import edu.cit.nuevas.renteasy.service.UserService;
 
 @RestController
 @RequestMapping("/api/auth")

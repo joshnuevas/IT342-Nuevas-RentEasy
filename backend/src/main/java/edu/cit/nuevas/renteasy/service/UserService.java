@@ -1,15 +1,15 @@
-package com.it342.backend.service;
+package edu.cit.nuevas.renteasy.service;
 
 import java.util.Optional;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.it342.backend.dto.LoginRequest;
-import com.it342.backend.dto.RegisterRequest;
-import com.it342.backend.model.User;
-import com.it342.backend.repository.UserRepository;
-import com.it342.backend.security.JwtUtil;
+import edu.cit.nuevas.renteasy.dto.LoginRequest;
+import edu.cit.nuevas.renteasy.dto.RegisterRequest;
+import edu.cit.nuevas.renteasy.model.User;
+import edu.cit.nuevas.renteasy.repository.UserRepository;
+import edu.cit.nuevas.renteasy.security.JwtUtil;
 
 @Service
 public class UserService {

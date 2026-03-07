@@ -1,4 +1,4 @@
-package com.it342.backend.config;
+package edu.cit.nuevas.renteasy.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -6,7 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.it342.backend.security.JwtAuthenticationFilter;
+import edu.cit.nuevas.renteasy.security.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {

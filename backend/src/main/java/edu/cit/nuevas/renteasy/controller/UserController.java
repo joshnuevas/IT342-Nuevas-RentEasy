@@ -1,4 +1,4 @@
-package com.it342.backend.controller;
+package edu.cit.nuevas.renteasy.controller;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;

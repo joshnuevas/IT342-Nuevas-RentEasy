@@ -1,4 +1,4 @@
-package com.it342.backend.dto;
+package edu.cit.nuevas.renteasy.dto;
 
 public class LoginRequest {
     public String email;

@@ -1,4 +1,4 @@
-package com.it342.backend.security;
+package edu.cit.nuevas.renteasy.security;
 
 import java.security.Key;
 import java.util.Date;
