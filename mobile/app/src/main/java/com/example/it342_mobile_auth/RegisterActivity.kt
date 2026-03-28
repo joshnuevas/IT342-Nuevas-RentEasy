@@ -23,21 +23,25 @@ class RegisterActivity : AppCompatActivity() {
             insets
         }
 
-        val etUser = findViewById<EditText>(R.id.etRegUsername)
-        val etEmail = findViewById<EditText>(R.id.etRegEmail)
-        val etPass = findViewById<EditText>(R.id.etRegPassword)
-        val etPhone = findViewById<EditText>(R.id.etRegPhone)
-        val etAddress = findViewById<EditText>(R.id.etRegAddress)
+        val etFirstName = findViewById<EditText>(R.id.etFirstName)
+        val etLastName = findViewById<EditText>(R.id.etLastName)
+        val etEmail = findViewById<EditText>(R.id.etEmail)
+        val etPass = findViewById<EditText>(R.id.etPassword)
+
+        val btnGoToLogin = findViewById<Button>(R.id.btnGoToLogin)
         val btnReg = findViewById<Button>(R.id.btnRegisterConfirm)
 
+        btnGoToLogin.setOnClickListener {
+            finish()
+        }
+
         btnReg.setOnClickListener {
-            val username = etUser.text.toString().trim()
+            val firstName = etFirstName.text.toString().trim()
+            val lastName = etLastName.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val password = etPass.text.toString().trim()
-            val phone = etPhone.text.toString().trim()
-            val address = etAddress.text.toString().trim()
 
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -45,13 +49,13 @@ class RegisterActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val response = RetrofitClient.instance.registerUser(
-                        RegisterRequest(username, email, password, phone, address)
+                        RegisterRequest(firstName, lastName, email, password)
                     )
 
                     if (response.isSuccessful) {
                         Toast.makeText(
                             this@RegisterActivity,
-                            response.body()?.string(),
+                            "Registration successful",
                             Toast.LENGTH_LONG
                         ).show()
                         finish()

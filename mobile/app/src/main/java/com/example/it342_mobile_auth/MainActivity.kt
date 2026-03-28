@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -33,9 +34,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnLogin.setOnClickListener {
-            val email = etEmail.text.toString()
-            val password = etPass.text.toString()
-            if (email.isEmpty() || password.isEmpty()) return@setOnClickListener
+            val email = etEmail.text.toString().trim()
+            val password = etPass.text.toString().trim()
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this@MainActivity, "Please enter your email and password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             lifecycleScope.launch {
                 try {
