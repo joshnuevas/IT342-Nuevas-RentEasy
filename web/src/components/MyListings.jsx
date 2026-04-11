@@ -30,7 +30,7 @@ export default function MyListings() {
       } else {
         setError(result.error || "Failed to load listings.");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to connect to server.");
     } finally {
       setIsLoading(false);
@@ -51,7 +51,7 @@ export default function MyListings() {
       } else {
         alert("Error deleting product: " + result.error);
       }
-    } catch (err) {
+    } catch {
       alert("Could not connect to server to delete.");
     }
   };

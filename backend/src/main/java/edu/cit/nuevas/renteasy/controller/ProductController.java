@@ -1,42 +1,58 @@
 package edu.cit.nuevas.renteasy.controller;
 
-import edu.cit.nuevas.renteasy.dto.ApiResponse;
-import edu.cit.nuevas.renteasy.dto.ProductRequest;
-import edu.cit.nuevas.renteasy.model.Product;
-import edu.cit.nuevas.renteasy.service.ProductService;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import edu.cit.nuevas.renteasy.dto.ProductRequest;
+import edu.cit.nuevas.renteasy.model.Product;
+import edu.cit.nuevas.renteasy.repository.ProductRepository;
+import edu.cit.nuevas.renteasy.service.ProductService;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "http://localhost:5173") 
+@CrossOrigin(origins = "http://localhost:5173")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<Product>>> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        return ResponseEntity.ok(ApiResponse.success(products));
-    }
+    @Autowired
+    private ProductRepository productRepository;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody ProductRequest request) {
-        Product newProduct = productService.addProduct(request);
-        return ResponseEntity.ok(ApiResponse.success(newProduct));
+    public ResponseEntity<?> addProduct(@RequestBody ProductRequest request) {
+        Product product = productService.addProduct(request);
+        return ResponseEntity.ok(Map.of("success", true, "product", product));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteProduct(@PathVariable Long id) {
-        try {
-            productService.deleteProduct(id);
-            return ResponseEntity.ok(ApiResponse.success("Product deleted successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.error("Failed to delete product: " + e.getMessage()));
-        }
+    @GetMapping("/all-approved")
+    public List<Product> getAllApproved() {
+        return productRepository.findByStatus("APPROVED");
+    }
+
+    @GetMapping("/pending")
+    public List<Product> getPending() {
+        return productRepository.findByStatus("PENDING");
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) return ResponseEntity.notFound().build();
+        
+        product.setStatus(request.get("status"));
+        productRepository.save(product);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }

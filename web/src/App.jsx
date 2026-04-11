@@ -3,7 +3,8 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Home from "./components/Home";
 import CreateListing from "./components/CreateListing";
-import MyListings from "./components/MyListings"; // ADDED THIS IMPORT
+import MyListings from "./components/MyListings";
+import AdminDashboard from "./components/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -40,7 +41,17 @@ function App() {
           }
         />
 
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );

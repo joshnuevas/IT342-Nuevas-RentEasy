@@ -9,7 +9,7 @@ public class ProductRequest {
     private Integer stock;
     private String category;
     private String imageUrl;
-    private Long ownerId;
+    private String ownerEmail;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -29,6 +29,6 @@ public class ProductRequest {
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public Long getOwnerId() { return ownerId; }
-    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+    public String getOwnerEmail() { return ownerEmail; }
+    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
 }

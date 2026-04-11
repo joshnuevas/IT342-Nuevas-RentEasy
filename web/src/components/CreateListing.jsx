@@ -1,14 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Search, 
-  Plus, 
-  List, 
-  ShoppingCart, 
-  User, 
-  Upload, 
-  Loader2, 
-  AlertCircle 
+  Search, Plus, List, ShoppingCart, User, Upload, Loader2, AlertCircle 
 } from "lucide-react";
 
 export default function CreateListing() {
@@ -26,8 +19,11 @@ export default function CreateListing() {
     imageUrl: ""
   });
 
+  const currentUserEmail = localStorage.getItem("userEmail");
+
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
     navigate("/login");
   };
 
@@ -60,26 +56,27 @@ export default function CreateListing() {
       ...formData,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
-      ownerId: 1 
+      ownerEmail: currentUserEmail 
     };
     
     try {
+      const token = localStorage.getItem("token");
+
       const response = await fetch("http://localhost:8080/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (response.ok) {
         navigate("/home");
       } else {
-        setError(result.error || "Failed to create listing.");
+        setError("Failed to create listing. Please try again.");
       }
-    } catch (err) {
+    } catch {
       setError("Server error. Please check if your Spring Boot backend is running.");
     } finally {
       setIsLoading(false);

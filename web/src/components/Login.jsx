@@ -25,7 +25,13 @@ export default function Login() {
 
       if (response.ok) {
         localStorage.setItem("token", data);
-        navigate("/home");
+        localStorage.setItem("userEmail", email); 
+        
+        if (email.endsWith("@renteasy.com")) {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/home");
+        }
       } else {
         setError(data || "Invalid credentials.");
       }
@@ -56,11 +62,25 @@ export default function Login() {
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#8C6A48] mb-2 px-1">Email Address</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-3 bg-[#FDFBF9] border border-[#D0BCA0] rounded-xl outline-none" placeholder="email@example.com" />
+            <input 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              className="w-full px-4 py-3 bg-[#FDFBF9] border border-[#D0BCA0] rounded-xl outline-none focus:border-[#4A3428] transition-colors" 
+              placeholder="email@example.com" 
+            />
           </div>
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#8C6A48] mb-2 px-1">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-3 bg-[#FDFBF9] border border-[#D0BCA0] rounded-xl outline-none" placeholder="••••••••" />
+            <input 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              className="w-full px-4 py-3 bg-[#FDFBF9] border border-[#D0BCA0] rounded-xl outline-none focus:border-[#4A3428] transition-colors" 
+              placeholder="••••••••" 
+            />
           </div>
           <button type="submit" disabled={isLoading} className="w-full py-4 bg-[#4A3428] hover:bg-[#3E2b22] text-white font-bold rounded-xl transition-all disabled:opacity-70">
             {isLoading ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : "Login"}

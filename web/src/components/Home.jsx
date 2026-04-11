@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Search, Plus, List, ShoppingCart, User, 
-  Image as ImageIcon, Loader2, AlertCircle
+  Search, Plus, List, ShoppingCart, User, Image as ImageIcon, Loader2, AlertCircle
 } from "lucide-react";
 
 export default function Home() {
@@ -11,18 +10,20 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const currentUserEmail = localStorage.getItem("userEmail");
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/products");
+        const response = await fetch("http://localhost:8080/api/products/all-approved");
         const result = await response.json();
 
-        if (result.success) {
-          setProducts(result.data); 
+        if (Array.isArray(result)) {
+          setProducts(result); 
         } else {
-          setError(result.error || "Failed to load products.");
+          setError("Failed to load products.");
         }
-      } catch (err) {
+      } catch {
         setError("Cannot connect to server. Check if Spring Boot is running.");
       } finally {
         setIsLoading(false);
@@ -34,6 +35,7 @@ export default function Home() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
     navigate("/login");
   };
 
@@ -112,6 +114,8 @@ export default function Home() {
                 name={product.name} 
                 price={product.price} 
                 imageUrl={product.imageUrl}
+                owner={product.owner} 
+                currentUserEmail={currentUserEmail} 
               />
             ))}
           </div>
@@ -121,7 +125,9 @@ export default function Home() {
   );
 }
 
-function ProductCard({ name, price, imageUrl }) {
+function ProductCard({ name, price, imageUrl, owner, currentUserEmail }) {
+  const isOwner = owner?.email === currentUserEmail;
+
   return (
     <div className="bg-white border-2 border-[#4A3428] flex flex-col group hover:shadow-lg transition-shadow">
       <div className="h-64 bg-[#F5F2F0] border-b-2 border-[#4A3428] flex flex-col items-center justify-center text-[#8C6A48] overflow-hidden relative">
@@ -137,7 +143,20 @@ function ProductCard({ name, price, imageUrl }) {
       <div className="p-4 flex flex-col gap-3">
         <div className="border-2 border-[#4A3428] px-3 py-2 text-[#4A3428] font-bold text-sm bg-[#FDFBF9] truncate">{name}</div>
         <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium">${Number(price).toFixed(2)}/day</div>
-        <button className="w-full mt-2 py-2.5 border-2 border-[#4A3428] text-[#4A3428] font-bold hover:bg-[#4A3428] hover:text-white transition-colors">[Add to Cart]</button>
+        
+        {isOwner ? (
+          <button 
+            disabled 
+            className="w-full mt-2 py-2.5 border-2 border-gray-300 bg-gray-100 text-gray-400 font-bold cursor-not-allowed"
+            title="You cannot rent your own item"
+          >
+            [Cannot Add Own Item]
+          </button>
+        ) : (
+          <button className="w-full mt-2 py-2.5 border-2 border-[#4A3428] text-[#4A3428] font-bold hover:bg-[#4A3428] hover:text-white transition-colors">
+            [Add to Cart]
+          </button>
+        )}
       </div>
     </div>
   );
