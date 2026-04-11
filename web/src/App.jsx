@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Home from "./components/Home";
+import CreateListing from "./components/CreateListing";
+import MyListings from "./components/MyListings"; // ADDED THIS IMPORT
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -16,6 +18,24 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/create-listing"
+          element={
+            <ProtectedRoute>
+              <CreateListing />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-listings"
+          element={
+            <ProtectedRoute>
+              <MyListings />
             </ProtectedRoute>
           }
         />

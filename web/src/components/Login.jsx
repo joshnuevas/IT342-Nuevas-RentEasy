@@ -63,7 +63,7 @@ export default function Login() {
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-3 bg-[#FDFBF9] border border-[#D0BCA0] rounded-xl outline-none" placeholder="••••••••" />
           </div>
           <button type="submit" disabled={isLoading} className="w-full py-4 bg-[#4A3428] hover:bg-[#3E2b22] text-white font-bold rounded-xl transition-all disabled:opacity-70">
-            {isLoading ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : "Login Button"}
+            {isLoading ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : "Login"}
           </button>
         </form>
 
