@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Search, Plus, List, ShoppingCart, User, 
-  Trash2, Loader2, AlertCircle, ArrowLeft 
+  Trash2, Loader2, ImageIcon, ArrowLeft, Camera, Edit2, TrendingUp 
 } from "lucide-react";
 
 export default function MyListings() {
@@ -84,72 +84,104 @@ export default function MyListings() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto p-6 md:p-8">
-        <button 
-          onClick={() => navigate("/home")} 
-          className="flex items-center gap-2 text-sm font-bold mb-6 hover:underline"
-        >
-          <ArrowLeft size={16} /> Back to Browse
-        </button>
-
-        <div className="border-2 border-[#4A3428] p-4 bg-white mb-8">
-          <h1 className="text-xl font-bold">[My Listings]</h1>
-          <p className="text-sm text-[#8C6A48]">Manage or remove your active rental items.</p>
+      <main className="max-w-7xl mx-auto p-6 md:p-8">
+        <div className="flex items-center justify-between mb-8 border-b-2 border-[#D0BCA0] pb-6">
+          <div className="border-2 border-[#4A3428] p-4 bg-white inline-block">
+            <h1 className="text-xl font-bold">[My Listings]</h1>
+          </div>
+          <button 
+            onClick={() => navigate("/create-listing")} 
+            className="flex items-center gap-2 bg-[#4A3428] text-white border-2 border-[#4A3428] px-6 py-3 font-bold hover:bg-[#3A281E] transition-colors"
+          >
+            <Plus size={18} /> [Add New Product]
+          </button>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-[#8C6A48]" />
+            <Loader2 className="animate-spin text-[#8C6A48] w-10 h-10" />
           </div>
         ) : error ? (
-          <div className="text-center py-20 border-2 border-red-500 bg-white text-red-600 font-bold p-4">
+          <div className="text-center py-20 border-2 border-red-500 bg-red-50 text-red-700 font-bold p-6">
+            <AlertCircle className="w-8 h-8 mb-3 mx-auto" />
             {error}
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-[#D0BCA0] bg-white">
-            <p className="font-bold mb-4 text-[#8C6A48]">You haven't listed anything yet.</p>
-            <button 
-              onClick={() => navigate("/create-listing")} 
-              className="border-2 border-[#4A3428] px-4 py-2 text-sm font-bold hover:bg-[#4A3428] hover:text-white transition-colors"
-            >
-              Create Your First Listing
-            </button>
+          <div className="border-2 border-[#4A3428] bg-white p-12 mb-10">
+            <div className="flex items-center justify-center gap-6 text-center">
+              <span className="border-2 border-[#4A3428] px-6 py-3 text-lg font-bold bg-[#FDFBF9]">
+                [No Listings Yet]
+              </span>
+              <span className="border-2 border-[#D0BCA0] px-6 py-3 text-sm text-[#8C6A48] font-medium">
+                [Start earning by listing your items for rent]
+              </span>
+              <button 
+                onClick={() => navigate("/create-listing")} 
+                className="flex items-center gap-2 bg-[#4A3428] text-white border-2 border-[#4A3428] px-6 py-3 font-bold hover:bg-[#3A281E] transition-colors"
+              >
+                <Plus size={18} /> [List Your First Product]
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
             {products.map((product) => (
-              <div key={product.productId} className="bg-white border-2 border-[#4A3428] p-4 flex items-center gap-6 group hover:shadow-md transition-shadow">
-                <div className="w-24 h-24 bg-[#F5F2F0] border-2 border-[#4A3428] flex-shrink-0 overflow-hidden">
+              <div key={product.productId} className="bg-white border-2 border-[#4A3428] flex flex-col group hover:shadow-lg transition-shadow relative">
+                <button 
+                  onClick={() => handleDelete(product.productId)}
+                  className="absolute top-3 right-3 z-10 border-2 border-red-500 p-2.5 text-red-500 bg-white hover:bg-red-500 hover:text-white transition-all shadow-md"
+                  title="Delete Listing"
+                >
+                  <Trash2 size={18} />
+                </button>
+                <div className="h-64 bg-[#F5F2F0] border-b-2 border-[#4A3428] flex flex-col items-center justify-center text-[#8C6A48] overflow-hidden relative">
                   {product.imageUrl ? (
                     <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[#8C6A48] opacity-40">
-                      <List size={32} />
+                    <div className="w-full h-full flex flex-col items-center justify-center opacity-40">
+                      <ImageIcon size={40} className="mb-3" />
+                      <span className="text-sm font-medium">[No Image]</span>
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg">{product.name}</h3>
-                  <div className="flex gap-4 mt-1">
-                    <span className="text-[#8C6A48] text-sm font-medium border border-[#D0BCA0] px-2 bg-[#FDFBF9]">
+                <div className="p-4 flex flex-col gap-3">
+                  <div className="border-2 border-[#4A3428] px-3 py-2 text-[#4A3428] font-bold text-sm bg-[#FDFBF9] truncate">
+                    {product.name}
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium flex-1">
                       ${Number(product.price).toFixed(2)}/day
-                    </span>
-                    <span className="text-[#8C6A48] text-sm font-medium border border-[#D0BCA0] px-2 bg-[#FDFBF9]">
+                    </div>
+                    <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium flex-1">
                       Stock: {product.stock}
-                    </span>
+                    </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleDelete(product.productId)}
-                  className="border-2 border-red-500 p-3 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                  title="Delete Listing"
-                >
-                  <Trash2 size={20} />
-                </button>
               </div>
             ))}
           </div>
         )}
+
+        <div className="border-2 border-[#4A3428] bg-white p-8">
+          <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-8 bg-[#FDFBF9]">
+            <h2 className="text-lg font-bold text-[#4A3428]">[Listing Tips]</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-6 flex flex-col items-start gap-4">
+              <div className="border-2 border-[#4A3428] px-3 py-1 font-bold text-sm bg-white">[High-Quality Photos]</div>
+              <p className="text-sm text-[#8C6A48]">[Use clear, well-lit images]</p>
+            </div>
+            <div className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-6 flex flex-col items-start gap-4">
+              <div className="border-2 border-[#4A3428] px-3 py-1 font-bold text-sm bg-white">[Detailed Description]</div>
+              <p className="text-sm text-[#8C6A48]">[Include all important details]</p>
+            </div>
+            <div className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-6 flex flex-col items-start gap-4">
+              <div className="border-2 border-[#4A3428] px-3 py-1 font-bold text-sm bg-white">[Competitive Pricing]</div>
+              <p className="text-sm text-[#8C6A48]">[Research similar items]</p>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );
