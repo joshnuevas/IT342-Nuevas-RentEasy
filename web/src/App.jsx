@@ -5,6 +5,7 @@ import Home from "./components/Home";
 import CreateListing from "./components/CreateListing";
 import MyListings from "./components/MyListings";
 import AdminDashboard from "./components/AdminDashboard";
+import Cart from "./components/Cart"; // 1. Added Cart import
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -19,6 +20,16 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 2. Added Protected Cart Route */}
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
             </ProtectedRoute>
           }
         />

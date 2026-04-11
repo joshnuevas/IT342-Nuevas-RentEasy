@@ -67,5 +67,4 @@ public class Product {
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
