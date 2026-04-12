@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Search, Plus, List, ShoppingCart, User, 
-  Trash2, Loader2, ImageIcon, ArrowLeft, Camera, Edit2, TrendingUp 
+  Trash2, Loader2, ImageIcon, ArrowLeft, Camera, Edit2, TrendingUp, AlertCircle 
 } from "lucide-react";
 
 export default function MyListings() {
@@ -10,7 +10,9 @@ export default function MyListings() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const currentUserId = 1;
+  
+  const currentUserEmail = localStorage.getItem("userEmail");
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchMyProducts();
@@ -18,18 +20,19 @@ export default function MyListings() {
 
   const fetchMyProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/products");
-      const result = await response.json();
+      const response = await fetch("http://localhost:8080/api/products", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       
-      if (result.success) {
-        const myItems = result.data.filter(p => {
-          const ownerId = p.owner?.userID; 
-          return Number(ownerId) === Number(currentUserId);
-        });
-        setProducts(myItems);
-      } else {
-        setError(result.error || "Failed to load listings.");
-      }
+      if (!response.ok) throw new Error("Failed to load listings.");
+      
+      const result = await response.json();
+      const productList = Array.isArray(result) ? result : (result.data || []);
+      const myItems = productList.filter(p => p.owner?.email === currentUserEmail);
+      
+      setProducts(myItems);
     } catch {
       setError("Failed to connect to server.");
     } finally {
@@ -43,13 +46,16 @@ export default function MyListings() {
     try {
       const response = await fetch(`http://localhost:8080/api/products/${productId}`, {
         method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
-      const result = await response.json();
 
-      if (result.success) {
+      if (response.ok) {
         setProducts(products.filter(p => p.productId !== productId));
       } else {
-        alert("Error deleting product: " + result.error);
+        const errorMsg = await response.text();
+        alert("Error deleting product: " + errorMsg);
       }
     } catch {
       alert("Could not connect to server to delete.");
@@ -75,11 +81,18 @@ export default function MyListings() {
           <button 
             onClick={() => navigate("/home")} 
             className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0] transition-colors"
+            title="Browse Products"
           >
-            <List size={18} />
+            <Search size={18} />
+          </button>
+          <button 
+            onClick={() => navigate("/cart")} 
+            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0] transition-colors"
+          >
+            <ShoppingCart size={18} />
           </button>
           <button className="border-2 border-[#4A3428] p-1.5 bg-[#4A3428] text-white">
-            <User size={18} />
+            <List size={18} />
           </button>
         </div>
       </header>
@@ -108,7 +121,7 @@ export default function MyListings() {
           </div>
         ) : products.length === 0 ? (
           <div className="border-2 border-[#4A3428] bg-white p-12 mb-10">
-            <div className="flex items-center justify-center gap-6 text-center">
+            <div className="flex flex-col items-center justify-center gap-6 text-center">
               <span className="border-2 border-[#4A3428] px-6 py-3 text-lg font-bold bg-[#FDFBF9]">
                 [No Listings Yet]
               </span>
@@ -117,7 +130,7 @@ export default function MyListings() {
               </span>
               <button 
                 onClick={() => navigate("/create-listing")} 
-                className="flex items-center gap-2 bg-[#4A3428] text-white border-2 border-[#4A3428] px-6 py-3 font-bold hover:bg-[#3A281E] transition-colors"
+                className="flex items-center gap-2 bg-[#4A3428] text-white border-2 border-[#4A3428] px-6 py-3 font-bold hover:bg-[#3A281E] transition-colors mt-4"
               >
                 <Plus size={18} /> [List Your First Product]
               </button>
@@ -135,6 +148,13 @@ export default function MyListings() {
                   <Trash2 size={18} />
                 </button>
                 <div className="h-64 bg-[#F5F2F0] border-b-2 border-[#4A3428] flex flex-col items-center justify-center text-[#8C6A48] overflow-hidden relative">
+                  <div className={`absolute top-2 left-2 px-3 py-1 text-xs font-bold uppercase border-2 z-10 ${
+                    product.status === 'APPROVED' ? 'bg-green-100 text-green-800 border-green-800' : 
+                    product.status === 'REJECTED' ? 'bg-red-100 text-red-800 border-red-800' : 
+                    'bg-yellow-100 text-yellow-800 border-yellow-800'
+                  }`}>
+                    {product.status || 'PENDING'}
+                  </div>
                   {product.imageUrl ? (
                     <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
@@ -145,12 +165,12 @@ export default function MyListings() {
                   )}
                 </div>
                 <div className="p-4 flex flex-col gap-3">
-                  <div className="border-2 border-[#4A3428] px-3 py-2 text-[#4A3428] font-bold text-sm bg-[#FDFBF9] truncate">
+                  <div className="border-2 border-[#4A3428] px-3 py-2 text-[#4A3428] font-bold text-sm bg-[#FDFBF9] truncate uppercase">
                     {product.name}
                   </div>
                   <div className="flex gap-4">
                     <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium flex-1">
-                      ${Number(product.price).toFixed(2)}/day
+                      ${Number(product.price).toFixed(2)} / day
                     </div>
                     <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium flex-1">
                       Stock: {product.stock}

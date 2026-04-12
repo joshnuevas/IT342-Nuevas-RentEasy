@@ -102,6 +102,14 @@ export default function Home() {
           </button>
           
           <button 
+            onClick={() => navigate("/my-listings")}
+            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0]"
+            title="My Listings"
+          >
+            <List size={18} />
+          </button>
+          
+          <button 
             onClick={() => navigate("/cart")} 
             className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0] relative"
           >

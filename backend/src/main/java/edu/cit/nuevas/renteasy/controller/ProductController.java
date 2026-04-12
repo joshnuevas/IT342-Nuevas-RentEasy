@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,11 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("success", true, "product", product));
     }
 
+    @GetMapping
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
     @GetMapping("/all-approved")
     public List<Product> getAllApproved() {
         return productRepository.findByStatus("APPROVED");
@@ -53,6 +59,15 @@ public class ProductController {
         
         product.setStatus(request.get("status"));
         productRepository.save(product);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+        if (!productRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        productRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("success", true));
     }
 }
