@@ -53,7 +53,14 @@ const PendingView = ({ items, onAction }) => (
         items.map(item => (
           <div key={item.productId} className="bg-white border-2 border-[#4A3428] flex flex-col md:flex-row shadow-sm">
             <div className="w-full md:w-48 h-48 bg-[#F5F2F0] border-r-2 border-[#4A3428] flex-shrink-0">
-              <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+              {/* FIXED: Added check for empty string to prevent src="" crash */}
+              {item.imageUrl && item.imageUrl.trim() !== "" ? (
+                <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center opacity-50 text-[#8C6A48] text-sm font-bold">
+                  [No Image]
+                </div>
+              )}
             </div>
             <div className="p-6 flex-1 flex flex-col justify-between">
               <div>
@@ -88,13 +95,21 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [pendingItems, setPendingItems] = useState([]);
 
+  // Get token for authorized API calls
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     let isMounted = true;
 
     if (activeTab === "pending") {
       const loadPendingItems = async () => {
         try {
-          const response = await fetch("http://localhost:8080/api/products/pending");
+          // FIXED: Added Authorization header to the GET request
+          const response = await fetch("http://localhost:8080/api/products/pending", {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             if (isMounted) {
@@ -112,25 +127,33 @@ export default function AdminDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [activeTab]);
+  }, [activeTab, token]);
 
   const handleAction = async (id, status) => {
     try {
+      // FIXED: Added Authorization header to the PUT request
       const response = await fetch(`http://localhost:8080/api/products/${id}/status`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ status })
       });
       if (response.ok) {
         setPendingItems(prev => prev.filter(item => item.productId !== id));
+      } else {
+        alert("Action failed. You may not have permission.");
       }
     } catch (err) {
       console.error(err);
+      alert("Connection error.");
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
     navigate("/login");
   };
 
