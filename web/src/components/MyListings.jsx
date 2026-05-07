@@ -1,208 +1,214 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Search, Plus, List, ShoppingCart, User, 
-  Trash2, Loader2, ImageIcon, ArrowLeft, Camera, Edit2, TrendingUp, AlertCircle 
+  LogOut, LayoutDashboard, Box, Clock, 
+  ShoppingCart, Users, ArrowLeft, BarChart3, Check, X 
 } from "lucide-react";
 
-export default function MyListings() {
+const DashboardOverview = () => (
+  <>
+    <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-10 bg-white shadow-md">
+      <h2 className="text-xl font-bold">[Dashboard Overview]</h2>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      {[
+        { label: "[Total Orders]", value: "247" },
+        { label: "[Revenue]", value: "$12,450" },
+        { label: "[Products]", value: "89" },
+        { label: "[Active Users]", value: "1,234" },
+      ].map(card => (
+        <div key={card.label} className="bg-white border-2 border-[#4A3428] p-6 shadow-sm flex flex-col items-center">
+          <div className="border-2 border-[#D0BCA0] px-3 py-1 text-sm text-[#8C6A48] font-medium mb-5 bg-[#FDFBF9]">
+            {card.label}
+          </div>
+          <div className="border-2 border-[#4A3428] p-4 font-bold text-4xl text-[#4A3428]">
+            {card.value}
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="bg-white border-2 border-[#4A3428] p-8">
+      <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-8 bg-[#FDFBF9]">
+        <h3 className="text-lg font-bold flex items-center gap-2"><BarChart3 size={20} /> [Revenue Chart]</h3>
+      </div>
+      <div className="h-96 border-2 border-dashed border-[#D0BCA0] bg-[#FDFBF9] flex flex-col items-center justify-center text-[#8C6A48]">
+        <BarChart3 size={48} className="opacity-40 mb-4" />
+        <div className="border-2 border-[#D0BCA0] px-6 py-2 bg-white font-medium text-sm">[Chart Visualization Area]</div>
+      </div>
+    </div>
+  </>
+);
+
+const PendingView = ({ items, onAction }) => (
+  <>
+    <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-10 bg-white shadow-md">
+      <h2 className="text-xl font-bold">[Pending Approval Queue]</h2>
+    </div>
+    <div className="space-y-6">
+      {items.length === 0 ? (
+        <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-20 text-center font-bold text-[#8C6A48]">
+          [No listings awaiting review]
+        </div>
+      ) : (
+        items.map(item => (
+          <div key={item.productId} className="bg-white border-2 border-[#4A3428] flex flex-col md:flex-row shadow-sm">
+            <div className="w-full md:w-48 h-48 bg-[#F5F2F0] border-r-2 border-[#4A3428] flex-shrink-0">
+              {item.imageUrl && item.imageUrl.trim() !== "" ? (
+                <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center opacity-50 text-[#8C6A48] text-sm font-bold">
+                  [No Image]
+                </div>
+              )}
+            </div>
+            <div className="p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-bold uppercase">{item.name}</h3>
+                <p className="text-sm text-[#8C6A48]">By: {item.owner?.firstName} {item.owner?.lastName}</p>
+              </div>
+              <div className="text-xl font-bold mt-4">${item.price}</div>
+            </div>
+            <div className="w-full md:w-64 p-6 border-l-2 border-[#4A3428] flex flex-col gap-3 bg-[#FDFBF9]">
+              <button 
+                onClick={() => onAction(item.productId, "APPROVED")}
+                className="w-full bg-[#4A3428] text-white font-bold py-2 border-2 border-[#4A3428] hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Check size={18} /> [Approve]
+              </button>
+              <button 
+                onClick={() => onAction(item.productId, "REJECTED")}
+                className="w-full bg-white text-red-600 font-bold py-2 border-2 border-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <X size={18} /> [Reject]
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </>
+);
+
+export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  const currentUserEmail = localStorage.getItem("userEmail");
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [pendingItems, setPendingItems] = useState([]);
+
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetchMyProducts();
-  }, []);
+    let isMounted = true;
 
-  const fetchMyProducts = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/api/products", {
-        headers: {
-          "Authorization": `Bearer ${token}`
+    if (activeTab === "pending") {
+      const loadPendingItems = async () => {
+        try {
+          const response = await fetch("http://localhost:8080/api/products/pending", {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (isMounted) {
+              setPendingItems(data);
+            }
+          }
+        } catch (err) {
+          console.error(err);
         }
-      });
+      };
       
-      if (!response.ok) throw new Error("Failed to load listings.");
-      
-      const result = await response.json();
-      const productList = Array.isArray(result) ? result : (result.data || []);
-      const myItems = productList.filter(p => p.owner?.email === currentUserEmail);
-      
-      setProducts(myItems);
-    } catch {
-      setError("Failed to connect to server.");
-    } finally {
-      setIsLoading(false);
+      loadPendingItems();
     }
-  };
 
-  const handleDelete = async (productId) => {
-    if (!window.confirm("Are you sure you want to delete this listing?")) return;
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, token]);
 
+  const handleAction = async (id, status) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/products/${productId}`, {
-        method: "DELETE",
-        headers: {
+      const response = await fetch(`http://localhost:8080/api/products/${id}/status`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({ status })
       });
-
       if (response.ok) {
-        setProducts(products.filter(p => p.productId !== productId));
+        setPendingItems(prev => prev.filter(item => item.productId !== id));
       } else {
-        const errorMsg = await response.text();
-        alert("Error deleting product: " + errorMsg);
+        alert("Action failed. You may not have permission.");
       }
-    } catch {
-      alert("Could not connect to server to delete.");
+    } catch (err) {
+      console.error(err);
+      alert("Connection error.");
     }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
+    navigate("/login");
+  };
+
+  const sideBarItems = [
+    { id: "dashboard", label: "[Dashboard]", icon: LayoutDashboard },
+    { id: "products", label: "[Products]", icon: Box },
+    { id: "pending", label: "[Pending Approval]", icon: Clock },
+    { id: "orders", label: "[Orders]", icon: ShoppingCart },
+    { id: "users", label: "[Users]", icon: Users },
+  ];
 
   return (
     <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
       <header className="h-16 bg-white border-b border-[#D0BCA0] flex items-center justify-between px-6 sticky top-0 z-10">
-        <div 
-          className="border-2 border-[#4A3428] px-4 py-1.5 font-bold cursor-pointer bg-[#FDFBF9]" 
-          onClick={() => navigate("/home")}
-        >
-          RentEasy
+        <div className="border-2 border-[#4A3428] px-4 py-1.5 font-bold cursor-pointer bg-[#FDFBF9]" onClick={() => navigate("/home")}>
+          RentEasy [ADMIN]
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate("/create-listing")} 
-            className="hidden sm:flex border-2 border-[#4A3428] px-3 py-1.5 items-center gap-2 text-sm font-medium hover:bg-[#F5F2F0] transition-colors"
-          >
-            <Plus size={16} /> [List Item]
-          </button>
-          <button 
-            onClick={() => navigate("/home")} 
-            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0] transition-colors"
-            title="Browse Products"
-          >
-            <Search size={18} />
-          </button>
-          <button 
-            onClick={() => navigate("/cart")} 
-            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0] transition-colors"
-          >
-            <ShoppingCart size={18} />
-          </button>
-          <button className="border-2 border-[#4A3428] p-1.5 bg-[#4A3428] text-white">
-            <List size={18} />
+          <button onClick={handleLogout} className="border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold hover:bg-[#4A3428] hover:text-white flex items-center gap-2">
+            <LogOut size={16} /> [Logout]
           </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 md:p-8">
-        <div className="flex items-center justify-between mb-8 border-b-2 border-[#D0BCA0] pb-6">
-          <div className="border-2 border-[#4A3428] p-4 bg-white inline-block">
-            <h1 className="text-xl font-bold">[My Listings]</h1>
+      <div className="flex">
+        <aside className="w-64 bg-white border-r-2 border-[#D0BCA0] p-6 space-y-8 sticky top-16 h-[calc(100vh-4rem)]">
+          <div className="border-2 border-[#4A3428] p-4 text-center bg-[#FDFBF9]">
+            <h1 className="text-xl font-bold uppercase tracking-tight">Admin Panel</h1>
           </div>
-          <button 
-            onClick={() => navigate("/create-listing")} 
-            className="flex items-center gap-2 bg-[#4A3428] text-white border-2 border-[#4A3428] px-6 py-3 font-bold hover:bg-[#3A281E] transition-colors"
-          >
-            <Plus size={18} /> [Add New Product]
-          </button>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-[#8C6A48] w-10 h-10" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-20 border-2 border-red-500 bg-red-50 text-red-700 font-bold p-6">
-            <AlertCircle className="w-8 h-8 mb-3 mx-auto" />
-            {error}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="border-2 border-[#4A3428] bg-white p-12 mb-10">
-            <div className="flex flex-col items-center justify-center gap-6 text-center">
-              <span className="border-2 border-[#4A3428] px-6 py-3 text-lg font-bold bg-[#FDFBF9]">
-                [No Listings Yet]
-              </span>
-              <span className="border-2 border-[#D0BCA0] px-6 py-3 text-sm text-[#8C6A48] font-medium">
-                [Start earning by listing your items for rent]
-              </span>
+          <nav className="space-y-2">
+            {sideBarItems.map(item => (
               <button 
-                onClick={() => navigate("/create-listing")} 
-                className="flex items-center gap-2 bg-[#4A3428] text-white border-2 border-[#4A3428] px-6 py-3 font-bold hover:bg-[#3A281E] transition-colors mt-4"
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full border-2 p-3 flex items-center gap-3 text-sm font-bold transition-all ${
+                  activeTab === item.id 
+                    ? "bg-[#4A3428] text-white border-[#4A3428] translate-x-1" 
+                    : "border-[#D0BCA0] hover:bg-[#F5F2F0]"
+                }`}
               >
-                <Plus size={18} /> [List Your First Product]
+                <item.icon size={18} /> {item.label}
               </button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
-            {products.map((product) => (
-              <div key={product.productId} className="bg-white border-2 border-[#4A3428] flex flex-col group hover:shadow-lg transition-shadow relative">
-                <button 
-                  onClick={() => handleDelete(product.productId)}
-                  className="absolute top-3 right-3 z-10 border-2 border-red-500 p-2.5 text-red-500 bg-white hover:bg-red-500 hover:text-white transition-all shadow-md"
-                  title="Delete Listing"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <div className="h-64 bg-[#F5F2F0] border-b-2 border-[#4A3428] flex flex-col items-center justify-center text-[#8C6A48] overflow-hidden relative">
-                  <div className={`absolute top-2 left-2 px-3 py-1 text-xs font-bold uppercase border-2 z-10 ${
-                    product.status === 'APPROVED' ? 'bg-green-100 text-green-800 border-green-800' : 
-                    product.status === 'REJECTED' ? 'bg-red-100 text-red-800 border-red-800' : 
-                    'bg-yellow-100 text-yellow-800 border-yellow-800'
-                  }`}>
-                    {product.status || 'PENDING'}
-                  </div>
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center opacity-40">
-                      <ImageIcon size={40} className="mb-3" />
-                      <span className="text-sm font-medium">[No Image]</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 flex flex-col gap-3">
-                  <div className="border-2 border-[#4A3428] px-3 py-2 text-[#4A3428] font-bold text-sm bg-[#FDFBF9] truncate uppercase">
-                    {product.name}
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium flex-1">
-                      ${Number(product.price).toFixed(2)} / day
-                    </div>
-                    <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium flex-1">
-                      Stock: {product.stock}
-                    </div>
-                  </div>
-                </div>
-              </div>
             ))}
-          </div>
-        )}
+            <button onClick={() => navigate("/home")} className="w-full border-2 border-dashed border-[#D0BCA0] p-3 flex items-center gap-3 text-sm font-bold mt-10 text-[#8C6A48] hover:bg-[#FDFBF9]">
+              <ArrowLeft size={18} /> [Back to Site]
+            </button>
+          </nav>
+        </aside>
 
-        <div className="border-2 border-[#4A3428] bg-white p-8">
-          <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-8 bg-[#FDFBF9]">
-            <h2 className="text-lg font-bold text-[#4A3428]">[Listing Tips]</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-6 flex flex-col items-start gap-4">
-              <div className="border-2 border-[#4A3428] px-3 py-1 font-bold text-sm bg-white">[High-Quality Photos]</div>
-              <p className="text-sm text-[#8C6A48]">[Use clear, well-lit images]</p>
+        <main className="flex-1 p-8">
+          {activeTab === "dashboard" && <DashboardOverview />}
+          {activeTab === "pending" && <PendingView items={pendingItems} onAction={handleAction} />}
+          {activeTab !== "dashboard" && activeTab !== "pending" && (
+            <div className="border-2 border-dashed border-[#D0BCA0] p-20 text-center text-[#8C6A48]">
+              [Section {activeTab.toUpperCase()} coming soon]
             </div>
-            <div className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-6 flex flex-col items-start gap-4">
-              <div className="border-2 border-[#4A3428] px-3 py-1 font-bold text-sm bg-white">[Detailed Description]</div>
-              <p className="text-sm text-[#8C6A48]">[Include all important details]</p>
-            </div>
-            <div className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-6 flex flex-col items-start gap-4">
-              <div className="border-2 border-[#4A3428] px-3 py-1 font-bold text-sm bg-white">[Competitive Pricing]</div>
-              <p className="text-sm text-[#8C6A48]">[Research similar items]</p>
-            </div>
-          </div>
-        </div>
-      </main>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
