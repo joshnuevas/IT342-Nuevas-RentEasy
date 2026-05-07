@@ -1,5 +1,17 @@
 # RentEasy
 
+## Vertical Slice Architecture
+
+This branch refactors RentEasy from a horizontal/layered structure into vertical feature slices.
+
+Current feature organization:
+
+* Backend: `auth`, `users`, `listings`, `cart`, `admin`, and `core`
+* Web: `features/auth`, `features/listings`, `features/cart`, `features/admin`, `shared`, and `app`
+* Mobile: `features/auth`, `features/dashboard`, and `core/network`
+
+Each feature slice keeps related UI/API/controller/service/model/repository code close to the feature it supports, while cross-cutting configuration, security, routing, and network helpers live in shared/core folders.
+
 ## 📌 Project Description
 
 RentEasy is a full-stack web application designed to simplify equipment rental management through a secure and user-friendly platform. Users can register, log in, and access protected features within the system.

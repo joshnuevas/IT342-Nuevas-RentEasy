@@ -3,6 +3,8 @@ package com.example.it342_mobile_auth
 import org.junit.Test
 
 import org.junit.Assert.*
+import com.example.it342_mobile_auth.features.auth.LoginRequest
+import com.example.it342_mobile_auth.features.auth.RegisterRequest
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -11,7 +13,13 @@ import org.junit.Assert.*
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun authModelsKeepSubmittedCredentials() {
+        val login = LoginRequest("ana@example.com", "secret")
+        val registration = RegisterRequest("Ana", "Santos", "ana@example.com", "secret")
+
+        assertEquals("ana@example.com", login.email)
+        assertEquals("secret", login.password)
+        assertEquals("Ana", registration.firstName)
+        assertEquals("Santos", registration.lastName)
     }
 }
