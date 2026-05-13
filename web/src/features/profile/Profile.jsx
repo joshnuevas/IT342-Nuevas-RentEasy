@@ -23,6 +23,7 @@ export default function Profile() {
     <Page>
       <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+          <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Account</p>
           <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">User Profile</h1>
         </div>
 

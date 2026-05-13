@@ -82,7 +82,17 @@ export default function Home() {
     <Page searchValue={search} onSearchChange={setSearch}>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-          <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Product Listing</h1>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">RentEasy Catalog</p>
+              <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Product Listing</h1>
+            </div>
+            {!isLoading && (
+              <span className="w-fit rounded-full bg-[#FDFBF9] px-4 py-2 text-sm font-black text-[#8C6A48] ring-1 ring-[#D0BCA0]">
+                {products.length} item{products.length === 1 ? "" : "s"}
+              </span>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
@@ -136,7 +146,9 @@ function ProductCard({ product, currentUserEmail, isInCart, addToCart, onView })
         <button type="button" onClick={onView} className="truncate text-left text-lg font-black text-[#4A3428] hover:underline">
           {product.name}
         </button>
-        <p className="text-sm font-bold text-[#8C6A48]">{product.category}</p>
+        <p className="w-fit rounded-full bg-[#2F6F62]/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-[#2F6F62]">
+          {product.category}
+        </p>
         <p className="mt-auto text-base font-black text-[#4A3428]">{formatCurrency(product.price)} / day</p>
         <button
           type="button"

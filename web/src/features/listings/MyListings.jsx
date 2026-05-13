@@ -94,7 +94,10 @@ export default function MyListings() {
     <Page>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">My Listings</h1>
+          <div>
+            <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Owner Center</p>
+            <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">My Listings</h1>
+          </div>
           <Link
             to="/create-listing"
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#4A3428] px-5 font-black text-white hover:bg-[#3E2B22]"

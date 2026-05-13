@@ -71,6 +71,20 @@ export default function Cart() {
   return (
     <Page cartCount={items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)}>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Rental Cart</p>
+              <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Shopping Cart</h1>
+            </div>
+            {items.length > 0 && (
+              <span className="w-fit rounded-full bg-[#FDFBF9] px-4 py-2 text-sm font-black text-[#8C6A48] ring-1 ring-[#D0BCA0]">
+                {items.length} item{items.length === 1 ? "" : "s"}
+              </span>
+            )}
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center py-20 text-[#8C6A48]">
             <Loader2 className="h-8 w-8 animate-spin" />

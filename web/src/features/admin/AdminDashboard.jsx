@@ -414,6 +414,7 @@ function UsersView({ profile }) {
 function Title({ children }) {
   return (
     <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white px-5 py-4 shadow-sm">
+      <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Admin Workspace</p>
       <h2 className="text-2xl font-black tracking-tight text-[#4A3428]">{children}</h2>
     </div>
   );

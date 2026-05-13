@@ -63,6 +63,7 @@ export default function CreateListing() {
     <Page>
       <section className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+          <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Owner Listing</p>
           <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">List a Product for Rent</h1>
         </div>
 
@@ -80,7 +81,7 @@ export default function CreateListing() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex h-64 w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-[#D0BCA0] bg-[#FDFBF9] hover:border-[#4A3428] hover:bg-white"
+              className="flex h-72 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#D0BCA0] bg-[#FDFBF9] hover:border-[#2F6F62] hover:bg-white"
             >
               {formData.imageUrl ? (
                 <img src={formData.imageUrl} alt="Preview" className="h-full w-full object-contain" />
