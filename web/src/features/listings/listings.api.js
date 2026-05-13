@@ -4,6 +4,12 @@ export function getApprovedProducts() {
   return apiFetch("/api/products/all-approved");
 }
 
+export function getAllProducts(token) {
+  return apiFetch("/api/products", {
+    headers: authHeaders(token),
+  });
+}
+
 export function getPendingProducts(token) {
   return apiFetch("/api/products/pending", {
     headers: authHeaders(token),
@@ -29,5 +35,12 @@ export function updateProductStatus(id, status, token) {
       ...authHeaders(token),
     },
     body: JSON.stringify({ status }),
+  });
+}
+
+export function deleteProduct(id, token) {
+  return apiFetch(`/api/products/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
   });
 }

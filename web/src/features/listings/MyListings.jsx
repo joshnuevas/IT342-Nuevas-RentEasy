@@ -1,30 +1,102 @@
 import { Link } from "react-router-dom";
-import { createElement, useState } from "react";
-import { CheckCircle2, Clock3, PackagePlus, Tag } from "lucide-react";
+import { createElement, useEffect, useMemo, useState } from "react";
+import { AlertCircle, CheckCircle2, Clock3, Loader2, PackagePlus, Tag } from "lucide-react";
 import { Page, EmptyState } from "../../shared/RentEasyLayout";
 import {
   currentUserEmail,
   deleteStoredListing,
   formatCurrency,
   getStoredListings,
+  normalizeProduct,
 } from "../../shared/rentEasyData";
+import { deleteProduct, getAllProducts } from "./listings.api";
 
 export default function MyListings() {
-  const [version, setVersion] = useState(0);
+  const [localListings, setLocalListings] = useState(() => getStoredListings());
+  const [databaseListings, setDatabaseListings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [removingId, setRemovingId] = useState("");
   const [notice, setNotice] = useState("");
   const email = currentUserEmail();
-  const listings = getStoredListings().filter((item) => item.owner?.email === email || item.ownerEmail === email);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadDatabaseListings() {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const response = await getAllProducts();
+        if (!response.ok) {
+          throw new Error("Unable to load products");
+        }
+
+        const products = await response.json();
+        if (isActive) {
+          setDatabaseListings(Array.isArray(products) ? products : []);
+        }
+      } catch {
+        if (isActive) {
+          setDatabaseListings([]);
+          setError("Database listings could not be loaded. Showing saved browser listings only.");
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadDatabaseListings();
+
+    return () => {
+      isActive = false;
+    };
+  }, [email]);
+
+  const listings = useMemo(() => {
+    const ownedDatabaseListings = databaseListings
+      .map(normalizeProduct)
+      .filter((item) => belongsToCurrentUser(item, email))
+      .map((item) => ({ ...item, source: "database" }));
+    const ownedLocalListings = localListings
+      .map(normalizeProduct)
+      .filter((item) => belongsToCurrentUser(item, email))
+      .map((item) => ({ ...item, source: "local" }));
+
+    return mergeListings(ownedDatabaseListings, ownedLocalListings);
+  }, [databaseListings, email, localListings]);
+
   const approved = listings.filter((item) => item.status === "APPROVED").length;
-  const pending = listings.filter((item) => item.status !== "APPROVED").length;
+  const pending = listings.filter((item) => item.status === "PENDING").length;
 
-  const handleRemove = (productId) => {
-    deleteStoredListing(productId);
-    setNotice("Listing removed from your queue.");
-    setVersion((current) => current + 1);
-    setTimeout(() => setNotice(""), 1800);
+  const handleRemove = async (item) => {
+    const productId = item.productId;
+    setRemovingId(String(productId));
+    setNotice("");
+    setError("");
+
+    try {
+      if (item.source === "database") {
+        const response = await deleteProduct(productId);
+        if (!response.ok) {
+          throw new Error("Unable to delete product");
+        }
+      }
+
+      deleteStoredListing(productId);
+      setLocalListings(getStoredListings());
+      setDatabaseListings((current) => current.filter((listing) => String(listing.productId) !== String(productId)));
+      setNotice("Listing removed successfully.");
+      setTimeout(() => setNotice(""), 1800);
+    } catch {
+      setError("That listing could not be removed from the database. Please make sure you are signed in and the backend is running.");
+    } finally {
+      setRemovingId("");
+    }
   };
-
-  void version;
 
   return (
     <Page>
@@ -58,7 +130,19 @@ export default function MyListings() {
           </div>
         )}
 
-        {listings.length === 0 ? (
+        {error && (
+          <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex min-h-64 items-center justify-center rounded-lg border border-stone-200 bg-white text-sm font-black text-stone-500">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin text-[#d5673f]" />
+            Loading your database listings...
+          </div>
+        ) : listings.length === 0 ? (
           <EmptyState
             icon={PackagePlus}
             title="No listings yet"
@@ -88,10 +172,10 @@ export default function MyListings() {
                 <div className="flex min-w-48 flex-col justify-between border-t border-stone-200 bg-stone-50 p-5 md:border-l md:border-t-0">
                   <span
                     className={`rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-wide ${
-                      item.status === "APPROVED" ? "bg-emerald-100 text-[#2f513f]" : "bg-amber-100 text-amber-800"
+                      statusClassName(item.status)
                     }`}
                   >
-                    {item.status === "APPROVED" ? "Approved" : "Pending review"}
+                    {statusLabel(item.status)}
                   </span>
                   <div className="mt-6 grid gap-2">
                     <Link
@@ -103,10 +187,11 @@ export default function MyListings() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => handleRemove(item.productId)}
-                      className="rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-50"
+                      onClick={() => handleRemove(item)}
+                      disabled={removingId === String(item.productId)}
+                      className="rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Remove listing
+                      {removingId === String(item.productId) ? "Removing..." : "Remove listing"}
                     </button>
                   </div>
                 </div>
@@ -117,6 +202,38 @@ export default function MyListings() {
       </section>
     </Page>
   );
+}
+
+function belongsToCurrentUser(item, email) {
+  return ownerEmail(item) === email.toLowerCase();
+}
+
+function ownerEmail(item) {
+  return String(item.owner?.email || item.ownerEmail || item.userEmail || item.email || "").toLowerCase();
+}
+
+function mergeListings(databaseListings, localListings) {
+  const seen = new Set();
+  return [...databaseListings, ...localListings].filter((item) => {
+    const key = String(item.productId);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function statusLabel(status) {
+  if (status === "APPROVED") return "Approved";
+  if (status === "REJECTED") return "Rejected";
+  return "Pending review";
+}
+
+function statusClassName(status) {
+  if (status === "APPROVED") return "bg-emerald-100 text-[#2f513f]";
+  if (status === "REJECTED") return "bg-red-100 text-red-700";
+  return "bg-amber-100 text-amber-800";
 }
 
 function Metric({ label, value, icon: Icon }) {
