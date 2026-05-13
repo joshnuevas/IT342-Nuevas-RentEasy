@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Minus, PackageOpen, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Image as ImageIcon, Loader2, X } from "lucide-react";
 import { deleteCartItem, getCart, updateCartQuantity } from "./cart.api";
-import { Page, EmptyState } from "../../shared/RentEasyLayout";
+import { Page } from "../../shared/RentEasyLayout";
 import {
   calculateCartTotal,
   currentUserEmail,
@@ -24,19 +24,23 @@ export default function Cart() {
 
   useEffect(() => {
     let isMounted = true;
+
     const loadCart = async () => {
       try {
         const response = await getCart(email, token);
         const data = response.ok ? await response.json() : [];
-        const local = getLocalCart(email);
-        if (isMounted) setItems(Array.isArray(data) && data.length > 0 ? data : local);
+        const localItems = getLocalCart(email);
+        const nextItems = Array.isArray(data) && data.length > 0 ? data : localItems;
+        if (isMounted) setItems(nextItems);
       } catch {
         if (isMounted) setItems(getLocalCart(email));
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
+
     loadCart();
+
     return () => {
       isMounted = false;
     };
@@ -44,11 +48,13 @@ export default function Cart() {
 
   const updateQty = async (id, quantity) => {
     if (quantity < 1) return;
+
     try {
       await updateCartQuantity(id, quantity, token);
     } catch {
       updateLocalCartQuantity(id, quantity, email);
     }
+
     setItems((prev) => prev.map((item) => (String(item.id) === String(id) ? { ...item, quantity } : item)));
   };
 
@@ -58,78 +64,97 @@ export default function Cart() {
     } catch {
       removeLocalCartItem(id, email);
     }
+
     setItems((prev) => prev.filter((item) => String(item.id) !== String(id)));
   };
 
   return (
-    <Page cartCount={items.reduce((sum, item) => sum + item.quantity, 0)}>
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0]">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">Shopping cart</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Review your rental cart</h1>
-        </div>
-
+    <Page cartCount={items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)}>
+      <section className="mx-auto max-w-7xl p-8">
         {isLoading ? (
-          <div className="min-h-64 rounded-lg bg-white" />
+          <div className="flex justify-center py-20 text-[#8C6A48]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
         ) : items.length === 0 ? (
-          <EmptyState
-            icon={PackageOpen}
-            title="Your cart is empty"
-            description="Browse the catalog and add rental items before checkout."
-            action={<Link to="/home" className="rounded-lg bg-[#4A3428] px-5 py-3 font-black text-white">Browse products</Link>}
-          />
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="flex w-full max-w-xl flex-col items-center gap-6 border-2 border-[#4A3428] bg-white p-12 text-center shadow-sm">
+              <div className="border-2 border-[#4A3428] bg-[#FDFBF9] px-8 py-3 text-2xl font-bold uppercase">
+                [Cart Empty]
+              </div>
+              <div className="border border-[#D0BCA0] px-4 py-1 text-sm text-[#8C6A48]">[No items in cart]</div>
+              <button
+                type="button"
+                onClick={() => navigate("/home")}
+                className="border-2 border-[#4A3428] px-8 py-3 font-bold hover:bg-[#4A3428] hover:text-white"
+              >
+                [Browse Products]
+              </button>
+            </div>
+          </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
               {items.map((item) => (
-                <article key={item.id} className="grid overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm sm:grid-cols-[160px_1fr_auto]">
-                  <img src={item.product.imageUrl} alt={item.product.name} className="h-44 w-full object-cover sm:h-full" />
-                  <div className="p-5">
-                    <p className="text-xs font-black uppercase tracking-wide text-[#4A3428]">{item.product.category}</p>
-                    <h2 className="mt-2 text-xl font-black text-[#4A3428]">{item.product.name}</h2>
-                    <p className="mt-1 text-sm text-[#8C6A48]">{formatCurrency(item.product.price)} per day</p>
-                    <div className="mt-5 inline-flex items-center overflow-hidden rounded-full border border-[#D0BCA0] bg-[#FDFBF9]">
-                      <button type="button" onClick={() => updateQty(item.id, item.quantity - 1)} className="grid h-9 w-10 place-items-center hover:bg-white">
-                        <Minus className="h-4 w-4" />
+                <article key={item.id} className="rent-card-motion flex gap-6 border-2 border-[#4A3428] bg-white p-4 shadow-sm">
+                  <div className="h-32 w-32 flex-shrink-0 border border-[#D0BCA0] bg-[#F5F2F0]">
+                    {item.product?.imageUrl ? (
+                      <img src={item.product.imageUrl} className="h-full w-full object-cover" alt={item.product.name} />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[#8C6A48] opacity-40">
+                        <ImageIcon />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="mb-2 border-b border-[#D0BCA0] pb-1 font-bold uppercase">{item.product?.name}</h3>
+                    <p className="mb-4 text-sm text-[#8C6A48]">{formatCurrency(item.product?.price)} / day</p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        className="border border-[#4A3428] px-2 font-bold"
+                        onClick={() => updateQty(item.id, item.quantity - 1)}
+                      >
+                        -
                       </button>
-                      <span className="min-w-10 text-center text-sm font-black">{item.quantity}</span>
-                      <button type="button" onClick={() => updateQty(item.id, item.quantity + 1)} className="grid h-9 w-10 place-items-center hover:bg-white">
-                        <Plus className="h-4 w-4" />
+                      <span className="min-w-8 text-center text-lg font-bold">{item.quantity}</span>
+                      <button
+                        type="button"
+                        className="border border-[#4A3428] px-2 font-bold"
+                        onClick={() => updateQty(item.id, item.quantity + 1)}
+                      >
+                        +
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between gap-4 border-t border-[#D0BCA0] bg-[#FDFBF9] p-5 sm:flex-col sm:items-end sm:border-l sm:border-t-0">
-                    <p className="text-lg font-black text-[#4A3428]">{formatCurrency(item.product.price * item.quantity)}</p>
-                    <button type="button" onClick={() => removeItem(item.id)} className="rounded-full p-2 text-red-500 hover:bg-red-50" title="Remove item">
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    className="self-start p-1 text-red-600 hover:bg-red-50"
+                    title="Remove item"
+                  >
+                    <X size={20} />
+                  </button>
                 </article>
               ))}
             </div>
 
-            <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-black text-[#4A3428]">
-                <ShoppingBag className="h-5 w-5 text-[#8C6A48]" />
-                Order summary
-              </h2>
-              <div className="mt-6 space-y-3 text-sm">
-                <Row label="Subtotal" value={formatCurrency(subtotal)} />
-                <Row label="Service fee" value={formatCurrency(serviceFee)} />
-                <div className="border-t border-[#D0BCA0] pt-4">
-                  <Row label="Total" value={formatCurrency(total)} strong />
-                </div>
+            <aside className="h-fit border-2 border-[#4A3428] bg-white p-6 shadow-sm">
+              <h2 className="mb-4 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">Order Summary</h2>
+              <Row label="Subtotal:" value={formatCurrency(subtotal)} />
+              <Row label="Service Fee:" value={formatCurrency(serviceFee)} />
+              <div className="mb-8 mt-4 flex justify-between border-t-2 border-[#D0BCA0] pt-4">
+                <span className="text-xl font-bold uppercase">Total:</span>
+                <span className="text-xl font-bold text-[#4A3428]">{formatCurrency(total)}</span>
               </div>
               <button
                 type="button"
                 onClick={() => navigate("/checkout", { state: { items } })}
-                className="mt-6 h-12 w-full rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22]"
+                className="w-full border-2 border-[#4A3428] bg-[#4A3428] py-4 font-bold uppercase tracking-wider text-white hover:bg-[#3E2B22]"
               >
-                Continue to checkout
+                [Proceed to Checkout]
               </button>
-              <Link to="/home" className="mt-3 flex h-12 items-center justify-center rounded-lg border border-[#D0BCA0] font-black text-[#4A3428] hover:border-[#4A3428] hover:text-[#4A3428]">
-                Continue shopping
-              </Link>
             </aside>
           </div>
         )}
@@ -138,11 +163,11 @@ export default function Cart() {
   );
 }
 
-function Row({ label, value, strong }) {
+function Row({ label, value }) {
   return (
-    <div className={`flex items-center justify-between ${strong ? "text-lg font-black text-[#4A3428]" : "text-[#8C6A48]"}`}>
+    <div className="mb-2 flex justify-between">
       <span>{label}</span>
-      <span className="font-black text-[#4A3428]">{value}</span>
+      <span className="font-bold">{value}</span>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import { createElement, useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Clock3, Loader2, PackagePlus, Tag } from "lucide-react";
-import { Page, EmptyState } from "../../shared/RentEasyLayout";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AlertCircle, Image as ImageIcon, Loader2, Plus } from "lucide-react";
+import { Page } from "../../shared/RentEasyLayout";
 import {
   currentUserEmail,
   deleteStoredListing,
@@ -12,13 +12,15 @@ import {
 import { deleteProduct, getAllProducts } from "./listings.api";
 
 export default function MyListings() {
+  const navigate = useNavigate();
   const [localListings, setLocalListings] = useState(() => getStoredListings());
   const [databaseListings, setDatabaseListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [removingId, setRemovingId] = useState("");
   const [notice, setNotice] = useState("");
+  const [removingId, setRemovingId] = useState("");
   const email = currentUserEmail();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     let isActive = true;
@@ -28,24 +30,20 @@ export default function MyListings() {
       setError("");
 
       try {
-        const response = await getAllProducts();
+        const response = await getAllProducts(token);
         if (!response.ok) {
-          throw new Error("Unable to load products");
+          throw new Error("Unable to load products.");
         }
 
         const products = await response.json();
-        if (isActive) {
-          setDatabaseListings(Array.isArray(products) ? products : []);
-        }
+        if (isActive) setDatabaseListings(Array.isArray(products) ? products : []);
       } catch {
         if (isActive) {
           setDatabaseListings([]);
           setError("Database listings could not be loaded. Showing saved browser listings only.");
         }
       } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
+        if (isActive) setIsLoading(false);
       }
     }
 
@@ -54,13 +52,14 @@ export default function MyListings() {
     return () => {
       isActive = false;
     };
-  }, [email]);
+  }, [email, token]);
 
   const listings = useMemo(() => {
     const ownedDatabaseListings = databaseListings
       .map(normalizeProduct)
       .filter((item) => belongsToCurrentUser(item, email))
       .map((item) => ({ ...item, source: "database" }));
+
     const ownedLocalListings = localListings
       .map(normalizeProduct)
       .filter((item) => belongsToCurrentUser(item, email))
@@ -68,9 +67,6 @@ export default function MyListings() {
 
     return mergeListings(ownedDatabaseListings, ownedLocalListings);
   }, [databaseListings, email, localListings]);
-
-  const approved = listings.filter((item) => item.status === "APPROVED").length;
-  const pending = listings.filter((item) => item.status === "PENDING").length;
 
   const handleRemove = async (item) => {
     const productId = item.productId;
@@ -80,10 +76,8 @@ export default function MyListings() {
 
     try {
       if (item.source === "database") {
-        const response = await deleteProduct(productId);
-        if (!response.ok) {
-          throw new Error("Unable to delete product");
-        }
+        const response = await deleteProduct(productId, token);
+        if (!response.ok) throw new Error("Unable to delete product.");
       }
 
       deleteStoredListing(productId);
@@ -92,7 +86,7 @@ export default function MyListings() {
       setNotice("Listing removed successfully.");
       setTimeout(() => setNotice(""), 1800);
     } catch {
-      setError("That listing could not be removed from the database. Please make sure you are signed in and the backend is running.");
+      setError("That listing could not be removed. Make sure the backend is running and you are logged in.");
     } finally {
       setRemovingId("");
     }
@@ -100,100 +94,95 @@ export default function MyListings() {
 
   return (
     <Page>
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 flex flex-col gap-5 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0] md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">My listings</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Manage your rental items</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8C6A48]">
-              Your wireframe keeps listing status, performance, and add-product actions together; this page follows that layout.
-            </p>
+      <section className="mx-auto max-w-7xl p-8">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="inline-block border-2 border-[#4A3428] bg-white p-3 shadow-sm">
+            <h1 className="text-xl font-bold text-[#4A3428]">[My Listings]</h1>
           </div>
           <Link
             to="/create-listing"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#4A3428] px-5 font-black text-white transition hover:bg-[#3E2B22]"
+            className="inline-flex items-center justify-center gap-2 border-2 border-[#4A3428] bg-[#4A3428] px-5 py-3 font-bold text-white hover:bg-[#3E2B22]"
           >
-            <PackagePlus className="h-5 w-5" />
-            Add new product
+            <Plus size={18} />
+            [Add New Product]
           </Link>
         </div>
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          <Metric label="Total listings" value={listings.length} icon={Tag} />
-          <Metric label="Approved" value={approved} icon={CheckCircle2} />
-          <Metric label="Pending review" value={pending} icon={Clock3} />
-        </div>
-
         {notice && (
-          <div className="mb-5 rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 py-3 text-sm font-black text-[#4A3428]">
+          <div className="mb-5 border-2 border-[#D0BCA0] bg-[#FDFBF9] px-4 py-3 text-sm font-bold text-[#4A3428]">
             {notice}
           </div>
         )}
 
         {error && (
-          <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+          <div className="mb-5 flex items-start gap-3 border-2 border-amber-500 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex min-h-64 items-center justify-center rounded-lg border border-[#D0BCA0] bg-white text-sm font-black text-[#8C6A48]">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin text-[#8C6A48]" />
-            Loading your database listings...
+          <div className="flex min-h-64 items-center justify-center border-2 border-[#D0BCA0] bg-white text-sm font-bold text-[#8C6A48]">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            [Loading listings...]
           </div>
         ) : listings.length === 0 ? (
-          <EmptyState
-            icon={PackagePlus}
-            title="No listings yet"
-            description="Create your first rental item so it can appear in your owner listing queue."
-            action={
-              <Link to="/create-listing" className="rounded-lg bg-[#4A3428] px-5 py-3 font-black text-white">
-                Create listing
-              </Link>
-            }
-          />
+          <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-16 text-center">
+            <p className="mb-5 font-bold text-[#8C6A48]">[No listings yet]</p>
+            <Link
+              to="/create-listing"
+              className="inline-block border-2 border-[#4A3428] px-8 py-3 font-bold hover:bg-[#4A3428] hover:text-white"
+            >
+              [Create Listing]
+            </Link>
+          </div>
         ) : (
-          <div className="grid gap-5">
+          <div className="space-y-5">
             {listings.map((item) => (
-              <article key={item.productId} className="grid overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm md:grid-cols-[220px_1fr_auto]">
-                <img src={item.imageUrl} alt={item.name} className="h-56 w-full object-cover md:h-full" />
-                <div className="p-5">
-                  <span className="rounded-full bg-[#F5F2F0] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#8C6A48]">
-                    {item.category}
-                  </span>
-                  <h2 className="mt-3 text-xl font-black text-[#4A3428]">{item.name}</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8C6A48]">{item.description}</p>
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-[#8C6A48]">
+              <article key={item.productId} className="rent-card-motion flex flex-col border-2 border-[#4A3428] bg-white shadow-sm md:flex-row">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/products/${item.productId}`, { state: { product: item } })}
+                  className="h-52 bg-[#F5F2F0] md:w-56 md:border-r-2 md:border-[#4A3428]"
+                >
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex h-full items-center justify-center text-[#8C6A48] opacity-40">
+                      <ImageIcon />
+                    </span>
+                  )}
+                </button>
+
+                <div className="flex-1 p-5">
+                  <div className="mb-3 inline-block border border-[#D0BCA0] bg-[#FDFBF9] px-3 py-1 text-xs font-bold uppercase text-[#8C6A48]">
+                    {statusLabel(item.status)}
+                  </div>
+                  <h2 className="text-lg font-bold uppercase text-[#4A3428]">{item.name}</h2>
+                  <p className="mt-2 text-sm leading-6 text-[#8C6A48]">{item.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-[#4A3428]">
                     <span>{formatCurrency(item.price)} / day</span>
                     <span>{item.stock} in stock</span>
+                    <span>{item.category}</span>
                   </div>
                 </div>
-                <div className="flex min-w-48 flex-col justify-between border-t border-[#D0BCA0] bg-[#FDFBF9] p-5 md:border-l md:border-t-0">
-                  <span
-                    className={`rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-wide ${
-                      statusClassName(item.status)
-                    }`}
+
+                <div className="grid gap-3 border-t-2 border-[#4A3428] bg-[#FDFBF9] p-5 md:w-56 md:border-l-2 md:border-t-0">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/products/${item.productId}`, { state: { product: item } })}
+                    className="border-2 border-[#4A3428] bg-white px-4 py-3 text-sm font-bold hover:bg-[#F5F2F0]"
                   >
-                    {statusLabel(item.status)}
-                  </span>
-                  <div className="mt-6 grid gap-2">
-                    <Link
-                      to={`/products/${item.productId}`}
-                      state={{ product: item }}
-                      className="rounded-lg border border-[#D0BCA0] bg-white px-4 py-3 text-center text-sm font-black text-[#4A3428] transition hover:border-[#4A3428] hover:text-[#4A3428]"
-                    >
-                      View details
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(item)}
-                      disabled={removingId === String(item.productId)}
-                      className="rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {removingId === String(item.productId) ? "Removing..." : "Remove listing"}
-                    </button>
-                  </div>
+                    [View Details]
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item)}
+                    disabled={removingId === String(item.productId)}
+                    className="border-2 border-red-600 bg-white px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                  >
+                    {removingId === String(item.productId) ? "[Removing...]" : "[Remove Listing]"}
+                  </button>
                 </div>
               </article>
             ))}
@@ -216,32 +205,14 @@ function mergeListings(databaseListings, localListings) {
   const seen = new Set();
   return [...databaseListings, ...localListings].filter((item) => {
     const key = String(item.productId);
-    if (seen.has(key)) {
-      return false;
-    }
+    if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 }
 
 function statusLabel(status) {
-  if (status === "APPROVED") return "Approved";
-  if (status === "REJECTED") return "Rejected";
-  return "Pending review";
-}
-
-function statusClassName(status) {
-  if (status === "APPROVED") return "bg-[#F5F2F0] text-[#4A3428]";
-  if (status === "REJECTED") return "bg-red-100 text-red-700";
-  return "bg-amber-100 text-amber-800";
-}
-
-function Metric({ label, value, icon: Icon }) {
-  return (
-    <div className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
-      {createElement(Icon, { className: "mb-4 h-5 w-5 text-[#8C6A48]" })}
-      <p className="text-sm font-bold text-[#8C6A48]">{label}</p>
-      <p className="mt-1 text-3xl font-black text-[#4A3428]">{value}</p>
-    </div>
-  );
+  if (status === "APPROVED") return "[Approved]";
+  if (status === "REJECTED") return "[Rejected]";
+  return "[Pending Review]";
 }

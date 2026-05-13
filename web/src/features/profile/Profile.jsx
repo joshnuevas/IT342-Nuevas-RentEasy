@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { createElement } from "react";
-import { CreditCard, History, LockKeyhole, MapPin, Save, UserRound } from "lucide-react";
+import { History, Save } from "lucide-react";
 import { Page } from "../../shared/RentEasyLayout";
 import { demoOrders, formatCurrency, getProfile, getStoredOrders, saveProfile, userInitials } from "../../shared/rentEasyData";
 
@@ -22,64 +21,59 @@ export default function Profile() {
 
   return (
     <Page>
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0]">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">My profile</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Account and rental history</h1>
+      <section className="mx-auto max-w-5xl p-8">
+        <div className="mb-8 inline-block border-2 border-[#4A3428] bg-white p-3 shadow-sm">
+          <h1 className="text-xl font-bold text-[#4A3428]">[User Profile]</h1>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-          <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 text-center shadow-sm">
-            <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-[#4A3428] text-3xl font-black text-white">
+        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+          <aside className="h-fit border-2 border-[#4A3428] bg-white p-6 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center border-2 border-[#4A3428] bg-[#FDFBF9] text-3xl font-black">
               {userInitials(profile.email)}
             </div>
-            <h2 className="mt-4 text-xl font-black text-[#4A3428]">{profile.name}</h2>
-            <p className="text-sm text-[#8C6A48]">{profile.email}</p>
-            <div className="mt-6 space-y-2 text-left text-sm font-bold text-[#8C6A48]">
-              <ProfileNav icon={UserRound} label="Profile information" />
-              <ProfileNav icon={LockKeyhole} label="Account security" />
-              <ProfileNav icon={CreditCard} label="Payment preferences" />
-              <ProfileNav icon={History} label="Order history" />
-            </div>
+            <h2 className="font-bold uppercase">{profile.name}</h2>
+            <p className="mt-1 text-sm text-[#8C6A48]">{profile.email}</p>
           </aside>
 
-          <div className="space-y-6">
-            <form onSubmit={handleSubmit} className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-lg font-black text-[#4A3428]">Profile information</h2>
-                {saved && <span className="rounded-full bg-[#FDFBF9] px-3 py-1 text-xs font-black text-[#4A3428]">Saved</span>}
+          <div className="space-y-8">
+            <form onSubmit={handleSubmit} className="border-2 border-[#4A3428] bg-white p-8 shadow-sm">
+              <div className="mb-6 flex items-center justify-between border-b-2 border-[#4A3428] pb-2">
+                <h2 className="font-bold uppercase">[Profile Information]</h2>
+                {saved && <span className="border border-[#D0BCA0] bg-[#FDFBF9] px-3 py-1 text-xs font-bold">[Saved]</span>}
               </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="Name" name="name" value={profile.name} onChange={handleChange} />
-                <Input label="Email" name="email" type="email" value={profile.email} onChange={handleChange} />
-                <Input label="Phone" name="phone" value={profile.phone} onChange={handleChange} />
-                <Input label="Address" name="address" value={profile.address} onChange={handleChange} />
+                <Input label="[Name]" name="name" value={profile.name} onChange={handleChange} />
+                <Input label="[Email]" name="email" type="email" value={profile.email} onChange={handleChange} />
+                <Input label="[Phone]" name="phone" value={profile.phone} onChange={handleChange} />
+                <Input label="[Address]" name="address" value={profile.address} onChange={handleChange} />
               </div>
-              <button type="submit" className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-[#4A3428] px-5 font-black text-white">
+
+              <button
+                type="submit"
+                className="mt-6 inline-flex items-center gap-2 border-2 border-[#4A3428] bg-[#4A3428] px-6 py-3 font-bold text-white hover:bg-[#3E2B22]"
+              >
                 <Save className="h-5 w-5" />
-                Save profile
+                [Save Profile]
               </button>
             </form>
 
-            <section className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-              <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-[#4A3428]">
-                <History className="h-5 w-5 text-[#8C6A48]" />
-                Order history
+            <section className="border-2 border-[#4A3428] bg-white p-8 shadow-sm">
+              <h2 className="mb-6 flex items-center gap-2 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">
+                <History className="h-5 w-5" />
+                [Order History]
               </h2>
               <div className="space-y-4">
                 {orders.map((order) => (
-                  <article key={order.orderNumber} className="rounded-lg bg-[#FDFBF9] p-4">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <article key={order.orderNumber} className="border-2 border-[#D0BCA0] bg-[#FDFBF9] p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-black text-[#4A3428]">{order.orderNumber}</p>
-                        <p className="flex items-center gap-1 text-sm text-[#8C6A48]">
-                          <MapPin className="h-4 w-4" />
-                          {order.shipping?.city || "Cebu City"}
-                        </p>
+                        <p className="font-bold text-[#4A3428]">{order.orderNumber}</p>
+                        <p className="text-sm text-[#8C6A48]">{order.createdAt || "Pending date"}</p>
                       </div>
                       <div className="text-left sm:text-right">
-                        <p className="font-black text-[#4A3428]">{formatCurrency(order.total)}</p>
-                        <p className="text-sm font-bold text-[#4A3428]">{order.status}</p>
+                        <p className="font-bold text-[#4A3428]">{formatCurrency(order.total)}</p>
+                        <p className="text-sm font-bold text-[#8C6A48]">{order.status}</p>
                       </div>
                     </div>
                   </article>
@@ -93,23 +87,16 @@ export default function Profile() {
   );
 }
 
-function ProfileNav({ icon: Icon, label }) {
-  return (
-    <div className="flex items-center gap-3 rounded-lg bg-[#FDFBF9] px-4 py-3">
-      {createElement(Icon, { className: "h-4 w-4 text-[#8C6A48]" })}
-      {label}
-    </div>
-  );
-}
-
 function Input({ label, ...props }) {
   return (
-    <label>
-      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
+    <label className="block space-y-2">
+      <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
+        {label}
+      </span>
       <input
         {...props}
         required
-        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
+        className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
       />
     </label>
   );

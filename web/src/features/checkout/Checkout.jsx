@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AlertCircle, CreditCard, Loader2, MapPin, PackageCheck, ShieldCheck } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Page } from "../../shared/RentEasyLayout";
 import {
   calculateCartTotal,
@@ -97,103 +97,83 @@ export default function Checkout() {
 
   return (
     <Page>
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0]">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">Payment process</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Checkout and delivery details</h1>
+      <section className="mx-auto max-w-7xl p-8">
+        <div className="mb-8 inline-block border-2 border-[#4A3428] bg-white p-3 shadow-sm">
+          <h1 className="text-xl font-bold text-[#4A3428]">[Checkout]</h1>
         </div>
 
         {paymentStatus === "cancelled" && (
-          <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-            <span>Your PayMongo checkout was cancelled. You can review your details and try again.</span>
-          </div>
+          <Message tone="warning">PayMongo checkout was cancelled. Review the details and try again.</Message>
         )}
 
-        {paymentError && (
-          <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-            <span>{paymentError}</span>
-          </div>
-        )}
+        {paymentError && <Message tone="error">{paymentError}</Message>}
 
-        <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          <section className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-[#4A3428]">
-              <MapPin className="h-5 w-5 text-[#8C6A48]" />
-              Shipping information
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Full name" name="name" value={shipping.name} onChange={handleChange} />
-              <Input label="Email" name="email" type="email" value={shipping.email} onChange={handleChange} />
-              <Input label="Phone" name="phone" value={shipping.phone} onChange={handleChange} placeholder="09XX XXX XXXX" />
-              <Input label="City" name="city" value={shipping.city} onChange={handleChange} />
-              <label className="sm:col-span-2">
-                <span className="mb-2 block text-sm font-bold text-[#4A3428]">Complete address</span>
-                <input
-                  name="address"
-                  value={shipping.address}
-                  onChange={handleChange}
-                  required
-                  placeholder="House number, street, barangay"
-                  className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
-                />
-              </label>
-              <Input label="ZIP code" name="zip" value={shipping.zip} onChange={handleChange} />
-            </div>
-
-            <div className="mt-7 rounded-lg bg-[#FDFBF9] p-5">
-              <h3 className="mb-3 flex items-center gap-2 font-black text-[#4A3428]">
-                <ShieldCheck className="h-5 w-5 text-[#8C6A48]" />
-                PayMongo hosted checkout
-              </h3>
-              <p className="text-sm leading-6 text-[#8C6A48]">
-                You will be redirected to PayMongo to complete payment using the enabled methods on your PayMongo account, such as card or GCash.
-              </p>
-            </div>
-          </section>
-
-          <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-[#4A3428]">
-              <PackageCheck className="h-5 w-5 text-[#8C6A48]" />
-              Order summary
-            </h2>
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-3">
-                  <img src={item.product.imageUrl} alt={item.product.name} className="h-16 w-16 rounded-lg object-cover" />
-                  <div className="flex-1">
-                    <p className="text-sm font-black text-[#4A3428]">{item.product.name}</p>
-                    <p className="text-xs text-[#8C6A48]">Qty {item.quantity}</p>
-                  </div>
-                  <p className="text-sm font-black">{formatCurrency(item.product.price * item.quantity)}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 space-y-3 border-t border-[#D0BCA0] pt-5 text-sm">
-              <Row label="Subtotal" value={formatCurrency(subtotal)} />
-              <Row label="Service fee" value={formatCurrency(serviceFee)} />
-              <Row label="Total" value={formatCurrency(total)} strong />
-            </div>
+        {items.length === 0 ? (
+          <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-16 text-center">
+            <p className="mb-5 font-bold text-[#8C6A48]">[No items in checkout]</p>
             <button
-              type="submit"
-              disabled={!isReady || items.length === 0 || isPaying}
-              className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22] disabled:bg-[#D0BCA0]"
+              type="button"
+              onClick={() => navigate("/home")}
+              className="border-2 border-[#4A3428] px-8 py-3 font-bold hover:bg-[#4A3428] hover:text-white"
             >
-              {isPaying ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Opening PayMongo...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="h-5 w-5" />
-                  Pay with PayMongo
-                </>
-              )}
+              [Browse Products]
             </button>
-          </aside>
-        </form>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
+            <section className="border-2 border-[#4A3428] bg-white p-8 shadow-sm">
+              <h2 className="mb-6 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">[Shipping Details]</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input label="[Full Name]" name="name" value={shipping.name} onChange={handleChange} />
+                <Input label="[Email]" name="email" type="email" value={shipping.email} onChange={handleChange} />
+                <Input label="[Phone]" name="phone" value={shipping.phone} onChange={handleChange} />
+                <Input label="[City]" name="city" value={shipping.city} onChange={handleChange} />
+                <label className="block space-y-2 sm:col-span-2">
+                  <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
+                    [Complete Address]
+                  </span>
+                  <input
+                    name="address"
+                    value={shipping.address}
+                    onChange={handleChange}
+                    required
+                    className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+                  />
+                </label>
+                <Input label="[ZIP Code]" name="zip" value={shipping.zip} onChange={handleChange} />
+              </div>
+            </section>
+
+            <aside className="h-fit border-2 border-[#4A3428] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">[Order Summary]</h2>
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex justify-between gap-3 border-b border-[#D0BCA0] pb-3 text-sm">
+                    <span className="font-bold">{item.product?.name} x {item.quantity}</span>
+                    <span>{formatCurrency((item.product?.price || 0) * item.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 space-y-2 text-sm">
+                <Row label="Subtotal:" value={formatCurrency(subtotal)} />
+                <Row label="Service Fee:" value={formatCurrency(serviceFee)} />
+                <div className="flex justify-between border-t-2 border-[#D0BCA0] pt-4 text-lg font-bold">
+                  <span>Total:</span>
+                  <span>{formatCurrency(total)}</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={!isReady || isPaying}
+                className="mt-6 flex w-full items-center justify-center border-2 border-[#4A3428] bg-[#4A3428] py-4 font-bold uppercase text-white hover:bg-[#3E2B22] disabled:opacity-60"
+              >
+                {isPaying ? <Loader2 className="h-5 w-5 animate-spin" /> : "[Pay with PayMongo]"}
+              </button>
+            </aside>
+          </form>
+        )}
       </section>
     </Page>
   );
@@ -212,24 +192,40 @@ async function readPaymentError(response) {
   }
 }
 
+function Message({ tone, children }) {
+  const className =
+    tone === "error"
+      ? "border-red-500 bg-red-50 text-red-700"
+      : "border-amber-500 bg-amber-50 text-amber-900";
+
+  return (
+    <div className={`mb-6 flex items-center gap-3 border-2 p-4 text-sm font-bold ${className}`}>
+      <AlertCircle className="h-5 w-5 shrink-0" />
+      <span>{children}</span>
+    </div>
+  );
+}
+
 function Input({ label, ...props }) {
   return (
-    <label>
-      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
+    <label className="block space-y-2">
+      <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
+        {label}
+      </span>
       <input
         {...props}
         required
-        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
+        className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
       />
     </label>
   );
 }
 
-function Row({ label, value, strong }) {
+function Row({ label, value }) {
   return (
-    <div className={`flex justify-between ${strong ? "text-lg font-black text-[#4A3428]" : "text-[#8C6A48]"}`}>
+    <div className="flex justify-between">
       <span>{label}</span>
-      <span className="font-black text-[#4A3428]">{value}</span>
+      <span className="font-bold">{value}</span>
     </div>
   );
 }
