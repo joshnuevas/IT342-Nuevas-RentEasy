@@ -79,7 +79,7 @@ export const demoPendingListings = [
     category: "Cameras",
     imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
     status: "PENDING",
-    owner: { firstName: "Josh", lastName: "Nuevas", email: "student@example.com" },
+    owner: { firstName: "Maria", lastName: "Santos", email: "owner@example.com" },
   },
 ];
 
@@ -98,6 +98,7 @@ const CART_KEY = "renteasy.cart.v2";
 const LISTING_KEY = "renteasy.listings.v2";
 const ORDER_KEY = "renteasy.orders.v2";
 const PROFILE_KEY = "renteasy.profile.v2";
+const REVIEWED_DEMO_KEY = "renteasy.reviewedDemoListings.v2";
 
 export function formatCurrency(value) {
   return new Intl.NumberFormat("en-PH", {
@@ -133,6 +134,21 @@ function writeJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function defaultProfileForEmail(email = currentUserEmail()) {
+  if (email === "admin1@renteasy.com") {
+    return { name: "Admin One", email, phone: "09XX XXX XXXX", address: "RentEasy Admin Office" };
+  }
+  if (email === "admin2@renteasy.com") {
+    return { name: "Admin Two", email, phone: "09XX XXX XXXX", address: "RentEasy Admin Office" };
+  }
+  return {
+    name: "Josh Anton Nuevas",
+    email,
+    phone: "09XX XXX XXXX",
+    address: "Cebu City",
+  };
+}
+
 export function normalizeProduct(product) {
   return {
     ...product,
@@ -151,14 +167,16 @@ export function getStoredListings() {
 
 export function saveStoredListing(payload) {
   const listings = getStoredListings();
+  const profile = getProfile();
+  const [firstName = "Owner", ...restName] = profile.name.split(" ").filter(Boolean);
   const listing = normalizeProduct({
     ...payload,
     productId: Date.now(),
     status: "PENDING",
     owner: {
-      firstName: "Josh",
-      lastName: "Nuevas",
-      email: currentUserEmail(),
+      firstName,
+      lastName: restName.join(" ") || "Account",
+      email: profile.email,
     },
     createdAt: new Date().toISOString(),
   });
@@ -167,9 +185,35 @@ export function saveStoredListing(payload) {
 }
 
 export function updateStoredListingStatus(productId, status) {
-  const listings = getStoredListings().map((item) =>
-    String(item.productId) === String(productId) ? { ...item, status } : item
-  );
+  let didUpdate = false;
+  const listings = getStoredListings().map((item) => {
+    if (String(item.productId) === String(productId)) {
+      didUpdate = true;
+      return { ...item, status };
+    }
+    return item;
+  });
+
+  if (!didUpdate) {
+    const demoListing = demoPendingListings.find((item) => String(item.productId) === String(productId));
+    if (demoListing) {
+      const reviewed = readJson(REVIEWED_DEMO_KEY, {});
+      reviewed[productId] = status;
+      writeJson(REVIEWED_DEMO_KEY, reviewed);
+      if (status === "APPROVED") {
+        listings.unshift({ ...demoListing, status: "APPROVED" });
+      }
+    }
+  }
+
+  writeJson(LISTING_KEY, listings);
+}
+
+export function deleteStoredListing(productId) {
+  const listings = getStoredListings().filter((item) => String(item.productId) !== String(productId));
+  const reviewed = readJson(REVIEWED_DEMO_KEY, {});
+  reviewed[productId] = "REMOVED";
+  writeJson(REVIEWED_DEMO_KEY, reviewed);
   writeJson(LISTING_KEY, listings);
 }
 
@@ -194,7 +238,9 @@ export function findProductById(productId, remoteProducts = []) {
 export function getPendingListings(remoteProducts = []) {
   const storedPending = getStoredListings().filter((item) => item.status === "PENDING").map(normalizeProduct);
   const remotePending = remoteProducts.map(normalizeProduct);
-  return remotePending.length > 0 ? [...storedPending, ...remotePending] : [...storedPending, ...demoPendingListings];
+  const reviewed = readJson(REVIEWED_DEMO_KEY, {});
+  const availableDemoPending = demoPendingListings.filter((item) => !reviewed[item.productId]);
+  return remotePending.length > 0 ? [...storedPending, ...remotePending] : [...storedPending, ...availableDemoPending];
 }
 
 export function getLocalCart(email = currentUserEmail()) {
@@ -249,6 +295,10 @@ export function getStoredOrders() {
   return readJson(ORDER_KEY, []);
 }
 
+export function saveStoredOrders(orders) {
+  writeJson(ORDER_KEY, orders);
+}
+
 export function saveOrder(order) {
   const nextOrder = {
     ...order,
@@ -261,14 +311,22 @@ export function saveOrder(order) {
 }
 
 export function getProfile() {
-  return readJson(PROFILE_KEY, {
-    name: "Josh Anton Nuevas",
-    email: currentUserEmail(),
-    phone: "09XX XXX XXXX",
-    address: "Cebu City",
-  });
+  const email = currentUserEmail();
+  const stored = readJson(PROFILE_KEY, {});
+  if (stored.email && stored.email !== email) {
+    return defaultProfileForEmail(email);
+  }
+  const profile = stored[email] || (stored.email === email ? stored : defaultProfileForEmail(email));
+  if (email.endsWith("@renteasy.com") && !profile.name?.toLowerCase().startsWith("admin")) {
+    return defaultProfileForEmail(email);
+  }
+  return profile;
 }
 
 export function saveProfile(profile) {
-  writeJson(PROFILE_KEY, profile);
+  const email = profile.email || currentUserEmail();
+  const stored = readJson(PROFILE_KEY, {});
+  const nextProfiles = stored.email ? {} : stored;
+  nextProfiles[email] = { ...profile, email };
+  writeJson(PROFILE_KEY, nextProfiles);
 }

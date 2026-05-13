@@ -1,4 +1,5 @@
 import { createElement, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Boxes,
@@ -14,10 +15,13 @@ import { getPendingListings as getPendingListingsApi, reviewListing } from "./ad
 import { Page } from "../../shared/RentEasyLayout";
 import {
   demoOrders,
+  deleteStoredListing,
   formatCurrency,
   getPendingListings,
+  getProfile,
   getStoredListings,
   getStoredOrders,
+  saveStoredOrders,
   updateStoredListingStatus,
 } from "../../shared/rentEasyData";
 
@@ -30,13 +34,15 @@ const tabs = [
 ];
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [remotePending, setRemotePending] = useState([]);
   const [, setLocalVersion] = useState(0);
+  const [orders, setOrders] = useState(() => [...getStoredOrders(), ...demoOrders]);
   const token = localStorage.getItem("token");
   const pendingItems = getPendingListings(remotePending);
   const listings = getStoredListings();
-  const orders = [...getStoredOrders(), ...demoOrders];
+  const profile = getProfile();
 
   useEffect(() => {
     let isMounted = true;
@@ -66,6 +72,19 @@ export default function AdminDashboard() {
     setLocalVersion((version) => version + 1);
   };
 
+  const handleDeleteProduct = (id) => {
+    deleteStoredListing(id);
+    setLocalVersion((version) => version + 1);
+  };
+
+  const handleOrderStatus = (orderNumber, status) => {
+    const nextOrders = orders.map((order) =>
+      order.orderNumber === orderNumber ? { ...order, status } : order
+    );
+    setOrders(nextOrders);
+    saveStoredOrders(nextOrders.filter((order) => !demoOrders.some((demo) => demo.orderNumber === order.orderNumber)));
+  };
+
   const approvedCount = listings.filter((item) => item.status === "APPROVED").length;
 
   return (
@@ -76,6 +95,9 @@ export default function AdminDashboard() {
             <div className="mb-6 rounded-lg bg-[#2f513f] p-5 text-white">
               <p className="text-sm font-bold text-emerald-100">RentEasy</p>
               <h1 className="mt-1 text-2xl font-black">Admin Panel</h1>
+              <p className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-emerald-50">
+                {profile.name}
+              </p>
             </div>
             <nav className="space-y-2">
               {tabs.map((tab) => (
@@ -103,9 +125,16 @@ export default function AdminDashboard() {
                 revenue={orders.reduce((sum, order) => sum + Number(order.total || 0), 0)}
               />
             )}
-            {activeTab === "products" && <ProductsView listings={listings} approvedCount={approvedCount} />}
+            {activeTab === "products" && (
+              <ProductsView
+                listings={listings}
+                approvedCount={approvedCount}
+                onDelete={handleDeleteProduct}
+                onView={(item) => navigate(`/products/${item.productId}`, { state: { product: item } })}
+              />
+            )}
             {activeTab === "pending" && <PendingView items={pendingItems} onReview={handleReview} />}
-            {activeTab === "orders" && <OrdersView orders={orders} />}
+            {activeTab === "orders" && <OrdersView orders={orders} onStatusChange={handleOrderStatus} />}
             {activeTab === "users" && <UsersView />}
           </div>
         </div>
@@ -132,11 +161,27 @@ function DashboardView({ totalProducts, pending, orders, revenue }) {
           <BarChart3 className="h-5 w-5 text-[#d5673f]" />
           Revenue snapshot
         </h3>
-        <div className="grid h-80 place-items-center rounded-lg bg-stone-50">
-          <div className="text-center">
-            <BarChart3 className="mx-auto mb-3 h-12 w-12 text-[#2f513f]" />
-            <p className="font-black text-stone-950">Sales dashboard placeholder</p>
-            <p className="mt-1 text-sm text-stone-500">Basic analytics are marked as could-have in the SDD.</p>
+        <div className="rounded-lg bg-stone-50 p-5">
+          <div className="flex h-72 items-end gap-4">
+            {[
+              { label: "Orders", value: Math.max(orders, 1), color: "bg-[#2f513f]" },
+              { label: "Pending", value: Math.max(pending, 1), color: "bg-[#d5673f]" },
+              { label: "Products", value: Math.max(totalProducts, 1), color: "bg-stone-800" },
+            ].map((bar) => (
+              <div key={bar.label} className="flex flex-1 flex-col items-center gap-3">
+                <div className="flex h-56 w-full max-w-28 items-end rounded-t-lg bg-white p-2">
+                  <div
+                    className={`w-full rounded-t-md ${bar.color}`}
+                    style={{ height: `${Math.min(100, 22 + bar.value * 14)}%` }}
+                    title={`${bar.label}: ${bar.value}`}
+                  />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-black text-stone-950">{bar.value}</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-stone-500">{bar.label}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -144,7 +189,7 @@ function DashboardView({ totalProducts, pending, orders, revenue }) {
   );
 }
 
-function ProductsView({ listings, approvedCount }) {
+function ProductsView({ listings, approvedCount, onDelete, onView }) {
   return (
     <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -152,10 +197,10 @@ function ProductsView({ listings, approvedCount }) {
           <h2 className="text-2xl font-black text-stone-950">Product management</h2>
           <p className="text-sm text-stone-500">{approvedCount} approved local listings</p>
         </div>
-        <a href="/create-listing" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#2f513f] px-4 font-black text-white">
+        <Link to="/create-listing" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#2f513f] px-4 font-black text-white">
           <PackagePlus className="h-5 w-5" />
           Add product
-        </a>
+        </Link>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[680px] text-left text-sm">
@@ -166,6 +211,7 @@ function ProductsView({ listings, approvedCount }) {
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Stock</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -178,8 +224,33 @@ function ProductsView({ listings, approvedCount }) {
                 <td className="px-4 py-4">
                   <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black uppercase">{item.status}</span>
                 </td>
+                <td className="px-4 py-4">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onView(item)}
+                      className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-black text-stone-700 hover:border-[#2f513f] hover:text-[#2f513f]"
+                    >
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(item.productId)}
+                      className="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
+            {listings.length === 0 && (
+              <tr>
+                <td colSpan="6" className="px-4 py-8 text-center text-sm font-semibold text-stone-500">
+                  No owner-created products yet. Use Add product to create one.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -203,21 +274,26 @@ function PendingView({ items, onReview }) {
               <p className="mt-3 text-sm font-bold text-stone-600">Owner: {item.owner?.firstName} {item.owner?.lastName}</p>
             </div>
             <div className="flex min-w-48 flex-row gap-2 border-t border-stone-200 bg-stone-50 p-5 md:flex-col md:border-l md:border-t-0">
-              <button onClick={() => onReview(item.productId, "APPROVED")} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#2f513f] px-4 py-3 text-sm font-black text-white">
+              <button type="button" onClick={() => onReview(item.productId, "APPROVED")} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#2f513f] px-4 py-3 text-sm font-black text-white">
                 <Check className="h-4 w-4" /> Approve
               </button>
-              <button onClick={() => onReview(item.productId, "REJECTED")} className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600">
+              <button type="button" onClick={() => onReview(item.productId, "REJECTED")} className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600">
                 <X className="h-4 w-4" /> Reject
               </button>
             </div>
           </article>
         ))}
       </div>
+      {items.length === 0 && (
+        <div className="mt-6 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-8 text-center text-sm font-bold text-stone-500">
+          No pending listings. Approved items move into Product Management and the customer catalog.
+        </div>
+      )}
     </section>
   );
 }
 
-function OrdersView({ orders }) {
+function OrdersView({ orders, onStatusChange }) {
   return (
     <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
       <h2 className="text-2xl font-black text-stone-950">Order list</h2>
@@ -231,7 +307,16 @@ function OrdersView({ orders }) {
               </div>
               <div className="text-left sm:text-right">
                 <p className="font-black text-stone-950">{formatCurrency(order.total)}</p>
-                <p className="text-sm font-bold text-[#2f513f]">{order.status}</p>
+                <select
+                  value={order.status}
+                  onChange={(event) => onStatusChange(order.orderNumber, event.target.value)}
+                  className="mt-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-sm font-bold text-[#2f513f] outline-none focus:border-[#2f513f]"
+                >
+                  <option>Processing</option>
+                  <option>Ready for Pickup</option>
+                  <option>Completed</option>
+                  <option>Cancelled</option>
+                </select>
               </div>
             </div>
           </article>

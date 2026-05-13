@@ -8,6 +8,7 @@ import {
   currentUserEmail,
   formatCurrency,
   getLocalCart,
+  getProfile,
   saveOrder,
 } from "../../shared/rentEasyData";
 
@@ -19,11 +20,12 @@ export default function Checkout() {
   const subtotal = calculateCartTotal(items);
   const serviceFee = items.length > 0 ? Math.round(subtotal * 0.05) : 0;
   const total = subtotal + serviceFee;
+  const profile = getProfile();
   const [shipping, setShipping] = useState({
-    name: "Josh Anton Nuevas",
-    email,
-    phone: "",
-    address: "",
+    name: profile.name,
+    email: profile.email || email,
+    phone: profile.phone === "09XX XXX XXXX" ? "" : profile.phone,
+    address: profile.address === "Cebu City" || profile.address === "RentEasy Admin Office" ? "" : profile.address,
     city: "Cebu City",
     zip: "",
   });

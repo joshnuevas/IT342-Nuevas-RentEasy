@@ -1,17 +1,30 @@
 import { Link } from "react-router-dom";
-import { createElement } from "react";
+import { createElement, useState } from "react";
 import { CheckCircle2, Clock3, PackagePlus, Tag } from "lucide-react";
 import { Page, EmptyState } from "../../shared/RentEasyLayout";
-import { currentUserEmail, demoPendingListings, formatCurrency, getStoredListings } from "../../shared/rentEasyData";
+import {
+  currentUserEmail,
+  deleteStoredListing,
+  formatCurrency,
+  getStoredListings,
+} from "../../shared/rentEasyData";
 
 export default function MyListings() {
+  const [version, setVersion] = useState(0);
+  const [notice, setNotice] = useState("");
   const email = currentUserEmail();
-  const listings = [
-    ...getStoredListings().filter((item) => item.owner?.email === email || item.ownerEmail === email),
-    ...demoPendingListings.filter((item) => item.owner?.email === "student@example.com"),
-  ];
+  const listings = getStoredListings().filter((item) => item.owner?.email === email || item.ownerEmail === email);
   const approved = listings.filter((item) => item.status === "APPROVED").length;
   const pending = listings.filter((item) => item.status !== "APPROVED").length;
+
+  const handleRemove = (productId) => {
+    deleteStoredListing(productId);
+    setNotice("Listing removed from your queue.");
+    setVersion((current) => current + 1);
+    setTimeout(() => setNotice(""), 1800);
+  };
+
+  void version;
 
   return (
     <Page>
@@ -38,6 +51,12 @@ export default function MyListings() {
           <Metric label="Approved" value={approved} icon={CheckCircle2} />
           <Metric label="Pending review" value={pending} icon={Clock3} />
         </div>
+
+        {notice && (
+          <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-black text-[#2f513f]">
+            {notice}
+          </div>
+        )}
 
         {listings.length === 0 ? (
           <EmptyState
@@ -74,9 +93,22 @@ export default function MyListings() {
                   >
                     {item.status === "APPROVED" ? "Approved" : "Pending review"}
                   </span>
-                  <button className="mt-6 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]">
-                    Edit details
-                  </button>
+                  <div className="mt-6 grid gap-2">
+                    <Link
+                      to={`/products/${item.productId}`}
+                      state={{ product: item }}
+                      className="rounded-lg border border-stone-200 bg-white px-4 py-3 text-center text-sm font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]"
+                    >
+                      View details
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(item.productId)}
+                      className="rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-50"
+                    >
+                      Remove listing
+                    </button>
+                  </div>
                 </div>
               </article>
             ))}
