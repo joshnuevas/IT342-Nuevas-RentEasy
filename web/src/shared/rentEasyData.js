@@ -302,9 +302,9 @@ export function saveStoredOrders(orders) {
 export function saveOrder(order) {
   const nextOrder = {
     ...order,
-    orderNumber: `RE-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
-    status: "Processing",
-    createdAt: new Date().toISOString().slice(0, 10),
+    orderNumber: order.orderNumber || `RE-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
+    status: order.status || "Processing",
+    createdAt: order.createdAt || new Date().toISOString().slice(0, 10),
   };
   writeJson(ORDER_KEY, [nextOrder, ...getStoredOrders()]);
   return nextOrder;

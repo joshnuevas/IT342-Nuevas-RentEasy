@@ -4,8 +4,10 @@ import { Page } from "../../shared/RentEasyLayout";
 import { demoOrders, formatCurrency, getStoredOrders } from "../../shared/rentEasyData";
 
 export default function OrderConfirmation() {
-  const { state } = useLocation();
+  const { state, search } = useLocation();
+  const paymentStatus = new URLSearchParams(search).get("payment");
   const order = state?.order || getStoredOrders()[0] || demoOrders[0];
+  const isPayMongoSuccess = paymentStatus === "success" || order.paymentProvider === "PayMongo";
 
   return (
     <Page>
@@ -15,9 +17,13 @@ export default function OrderConfirmation() {
             <CheckCircle2 className="h-10 w-10" />
           </div>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Order confirmed</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Thanks for your rental order</h1>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">
+            {isPayMongoSuccess ? "PayMongo payment received" : "Thanks for your rental order"}
+          </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-stone-500">
-            Your order is now marked as processing. This confirmation screen follows the SDD payment confirmation wireframe.
+            {isPayMongoSuccess
+              ? "Your order was returned from PayMongo and is ready for processing."
+              : "Your order is now marked as processing. This confirmation screen follows the SDD payment confirmation wireframe."}
           </p>
 
           <div className="mx-auto mt-8 max-w-lg rounded-lg bg-stone-50 p-5 text-left">
@@ -25,6 +31,11 @@ export default function OrderConfirmation() {
               <PackageCheck className="h-5 w-5 text-[#d5673f]" />
               {order.orderNumber}
             </div>
+            {order.paymentProvider && (
+              <div className="mb-4 rounded-lg bg-white px-3 py-2 text-sm font-bold text-stone-600">
+                Payment: {order.paymentProvider} - {isPayMongoSuccess ? "Submitted" : order.paymentStatus || "Pending"}
+              </div>
+            )}
             <div className="space-y-3">
               {order.items?.map((item) => (
                 <div key={item.product?.productId || item.name} className="flex justify-between text-sm">

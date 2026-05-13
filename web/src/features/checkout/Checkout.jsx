@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CreditCard, MapPin, PackageCheck } from "lucide-react";
+import { AlertCircle, CreditCard, Loader2, MapPin, PackageCheck, ShieldCheck } from "lucide-react";
 import { Page } from "../../shared/RentEasyLayout";
 import {
   calculateCartTotal,
@@ -11,10 +11,12 @@ import {
   getProfile,
   saveOrder,
 } from "../../shared/rentEasyData";
+import { createPayMongoCheckout } from "./payments.api";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const { state, search } = useLocation();
+  const paymentStatus = new URLSearchParams(search).get("payment");
   const email = currentUserEmail();
   const items = state?.items?.length ? state.items : getLocalCart(email);
   const subtotal = calculateCartTotal(items);
@@ -29,17 +31,68 @@ export default function Checkout() {
     city: "Cebu City",
     zip: "",
   });
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
   const isReady = useMemo(() => Object.values(shipping).every(Boolean), [shipping]);
 
   const handleChange = (event) => {
     setShipping((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const order = saveOrder({ items, shipping, subtotal, serviceFee, total });
-    clearLocalCart(email);
-    navigate("/order-confirmation", { state: { order } });
+    setPaymentError("");
+    setIsPaying(true);
+
+    const orderNumber = `RE-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
+    const payload = {
+      orderNumber,
+      shipping,
+      subtotal,
+      serviceFee,
+      total,
+      items: items.map((item) => ({
+        productId: item.product?.productId,
+        name: item.product?.name,
+        description: item.product?.description,
+        price: item.product?.price,
+        quantity: item.quantity,
+        imageUrl: item.product?.imageUrl,
+      })),
+    };
+
+    try {
+      const response = await createPayMongoCheckout(payload);
+      if (!response.ok) {
+        throw new Error(await readPaymentError(response));
+      }
+
+      const checkout = await response.json();
+      const order = saveOrder({
+        orderNumber,
+        items,
+        shipping,
+        subtotal,
+        serviceFee,
+        total,
+        status: "Awaiting PayMongo payment",
+        paymentProvider: "PayMongo",
+        paymentStatus: "PENDING",
+        checkoutSessionId: checkout.sessionId,
+        paymongoReferenceNumber: checkout.referenceNumber,
+      });
+
+      clearLocalCart(email);
+
+      if (checkout.checkoutUrl) {
+        window.location.href = checkout.checkoutUrl;
+      } else {
+        navigate("/order-confirmation", { state: { order } });
+      }
+    } catch (error) {
+      setPaymentError(error.message || "PayMongo checkout could not be started.");
+      setIsPaying(false);
+    }
   };
 
   return (
@@ -49,6 +102,20 @@ export default function Checkout() {
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Payment process</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Checkout and delivery details</h1>
         </div>
+
+        {paymentStatus === "cancelled" && (
+          <div className="mb-5 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>Your PayMongo checkout was cancelled. You can review your details and try again.</span>
+          </div>
+        )}
+
+        {paymentError && (
+          <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>{paymentError}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
@@ -77,11 +144,11 @@ export default function Checkout() {
 
             <div className="mt-7 rounded-lg bg-stone-50 p-5">
               <h3 className="mb-3 flex items-center gap-2 font-black text-stone-950">
-                <CreditCard className="h-5 w-5 text-[#d5673f]" />
-                Payment method
+                <ShieldCheck className="h-5 w-5 text-[#d5673f]" />
+                PayMongo hosted checkout
               </h3>
               <p className="text-sm leading-6 text-stone-600">
-                This SDD version excludes real payment gateway integration, so checkout records the order and prepares a confirmation screen.
+                You will be redirected to PayMongo to complete payment using the enabled methods on your PayMongo account, such as card or GCash.
               </p>
             </div>
           </section>
@@ -110,16 +177,35 @@ export default function Checkout() {
             </div>
             <button
               type="submit"
-              disabled={!isReady || items.length === 0}
-              className="mt-6 h-12 w-full rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232] disabled:bg-stone-300"
+              disabled={!isReady || items.length === 0 || isPaying}
+              className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232] disabled:bg-stone-300"
             >
-              Place order
+              {isPaying ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Opening PayMongo...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-5 w-5" />
+                  Pay with PayMongo
+                </>
+              )}
             </button>
           </aside>
         </form>
       </section>
     </Page>
   );
+}
+
+async function readPaymentError(response) {
+  try {
+    const data = await response.json();
+    return data.detail || data.message || data.error || "PayMongo checkout could not be started.";
+  } catch {
+    return "PayMongo checkout could not be started.";
+  }
 }
 
 function Input({ label, ...props }) {
