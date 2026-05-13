@@ -28,11 +28,11 @@ import {
 import { deleteProduct, getAllProducts } from "../listings/listings.api";
 
 const tabs = [
-  { id: "dashboard", label: "[Dashboard]", icon: LayoutDashboard },
-  { id: "products", label: "[Products]", icon: Box },
-  { id: "pending", label: "[Pending Approval]", icon: Clock },
-  { id: "orders", label: "[Orders]", icon: ShoppingCart },
-  { id: "users", label: "[Users]", icon: Users },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "products", label: "Products", icon: Box },
+  { id: "pending", label: "Pending Approval", icon: Clock },
+  { id: "orders", label: "Orders", icon: ShoppingCart },
+  { id: "users", label: "Users", icon: Users },
 ];
 
 export default function AdminDashboard() {
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
       prev.map((item) => (String(item.productId) === String(id) ? { ...item, status } : item))
     );
     setLocalVersion((version) => version + 1);
-    setNotice(status === "APPROVED" ? "[Listing Approved]" : "[Listing Rejected]");
+    setNotice(status === "APPROVED" ? "Listing approved." : "Listing rejected.");
     setTimeout(() => setNotice(""), 1600);
   };
 
@@ -117,10 +117,10 @@ export default function AdminDashboard() {
       deleteStoredListing(item.productId);
       setRemoteProducts((prev) => prev.filter((product) => String(product.productId) !== String(item.productId)));
       setLocalVersion((version) => version + 1);
-      setNotice("[Product Removed]");
+      setNotice("Product removed.");
       setTimeout(() => setNotice(""), 1600);
     } catch {
-      setNotice("[Product Remove Failed]");
+      setNotice("Product remove failed.");
       setTimeout(() => setNotice(""), 1600);
     }
   };
@@ -133,28 +133,28 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#D0BCA0] bg-white px-6">
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#D0BCA0] bg-white/95 px-6 shadow-sm backdrop-blur">
         <button
           type="button"
-          className="border-2 border-[#4A3428] bg-[#FDFBF9] px-4 py-1.5 font-bold"
+          className="rounded-lg bg-[#4A3428] px-4 py-2 font-black text-white hover:bg-[#3E2B22]"
           onClick={() => navigate("/home")}
         >
-          RentEasy [ADMIN]
+          RentEasy Admin
         </button>
         <button
           type="button"
           onClick={handleLogout}
-          className="flex items-center gap-2 border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold hover:bg-[#4A3428] hover:text-white"
+          className="flex h-10 items-center gap-2 rounded-lg border border-[#D0BCA0] px-3 text-sm font-bold text-[#4A3428] hover:border-[#4A3428] hover:bg-[#4A3428] hover:text-white"
         >
           <LogOut size={16} />
-          [Logout]
+          Logout
         </button>
       </header>
 
       <div className="flex min-h-[calc(100vh-4rem)]">
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 border-r-2 border-[#D0BCA0] bg-white p-6 md:block">
-          <div className="mb-8 border-2 border-[#4A3428] bg-[#FDFBF9] p-4 text-center">
-            <h1 className="text-xl font-bold uppercase">Admin Panel</h1>
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 border-r border-[#D0BCA0] bg-white p-6 md:block">
+          <div className="mb-8 rounded-lg bg-[#FDFBF9] p-4 text-center ring-1 ring-[#D0BCA0]">
+            <h1 className="text-xl font-black tracking-tight text-[#4A3428]">Admin Panel</h1>
             <p className="mt-2 text-xs font-bold text-[#8C6A48]">{profile.name}</p>
           </div>
 
@@ -164,10 +164,10 @@ export default function AdminDashboard() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex w-full items-center gap-3 border-2 p-3 text-left text-sm font-bold ${
+                className={`flex h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-black ${
                   activeTab === tab.id
-                    ? "border-[#4A3428] bg-[#4A3428] text-white"
-                    : "border-[#D0BCA0] hover:bg-[#F5F2F0]"
+                    ? "bg-[#4A3428] text-white"
+                    : "text-[#8C6A48] hover:bg-[#FDFBF9] hover:text-[#4A3428]"
                 }`}
               >
                 <tab.icon size={18} />
@@ -177,10 +177,10 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => navigate("/home")}
-              className="mt-8 flex w-full items-center gap-3 border-2 border-dashed border-[#D0BCA0] p-3 text-sm font-bold text-[#8C6A48] hover:bg-[#FDFBF9]"
+              className="mt-8 flex h-11 w-full items-center gap-3 rounded-lg border border-dashed border-[#D0BCA0] px-3 text-sm font-black text-[#8C6A48] hover:bg-[#FDFBF9]"
             >
               <ArrowLeft size={18} />
-              [Back to Site]
+              Back to Site
             </button>
           </nav>
         </aside>
@@ -192,8 +192,8 @@ export default function AdminDashboard() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`border-2 px-3 py-2 text-xs font-bold ${
-                  activeTab === tab.id ? "border-[#4A3428] bg-[#4A3428] text-white" : "border-[#D0BCA0] bg-white"
+                className={`rounded-lg px-3 py-2 text-xs font-bold ${
+                  activeTab === tab.id ? "bg-[#4A3428] text-white" : "border border-[#D0BCA0] bg-white text-[#4A3428]"
                 }`}
               >
                 {tab.label}
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
           </div>
 
           {notice && (
-            <div className="mb-5 inline-block border-2 border-[#D0BCA0] bg-white px-4 py-3 text-sm font-bold">
+            <div className="mb-5 inline-block rounded-lg border border-[#D0BCA0] bg-white px-4 py-3 text-sm font-bold">
               {notice}
             </div>
           )}
@@ -235,23 +235,23 @@ export default function AdminDashboard() {
 function DashboardView({ products, pending, orders, revenue }) {
   return (
     <>
-      <Title>[Dashboard Overview]</Title>
-      <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric label="[Total Orders]" value={orders} />
-        <Metric label="[Revenue]" value={formatCurrency(revenue)} />
-        <Metric label="[Products]" value={products} />
-        <Metric label="[Pending]" value={pending} />
+      <Title>Dashboard Overview</Title>
+      <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric label="Total Orders" value={orders} />
+        <Metric label="Revenue" value={formatCurrency(revenue)} />
+        <Metric label="Products" value={products} />
+        <Metric label="Pending" value={pending} />
       </div>
 
-      <section className="border-2 border-[#4A3428] bg-white p-8 shadow-sm">
-        <div className="mb-8 inline-flex items-center gap-2 border-2 border-[#4A3428] bg-[#FDFBF9] px-4 py-2 font-bold">
+      <section className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+        <div className="mb-6 flex items-center gap-2 font-black text-[#4A3428]">
           <BarChart3 size={20} />
-          [Revenue Chart]
+          Revenue Chart
         </div>
-        <div className="flex h-96 flex-col items-center justify-center border-2 border-dashed border-[#D0BCA0] bg-[#FDFBF9] text-[#8C6A48]">
-          <BarChart3 size={48} className="mb-4 opacity-40" />
-          <div className="border-2 border-[#D0BCA0] bg-white px-6 py-2 text-sm font-bold">
-            [Chart Visualization Area]
+        <div className="flex h-80 flex-col items-center justify-center rounded-lg border border-dashed border-[#D0BCA0] bg-[#FDFBF9] text-[#8C6A48]">
+          <BarChart3 size={44} className="mb-4 opacity-40" />
+          <div className="rounded-lg bg-white px-5 py-2 text-sm font-bold ring-1 ring-[#D0BCA0]">
+            Chart Visualization Area
           </div>
         </div>
       </section>
@@ -262,42 +262,34 @@ function DashboardView({ products, pending, orders, revenue }) {
 function ProductsView({ items, isLoading, onView, onDelete }) {
   return (
     <section>
-      <Title>[Products]</Title>
-      <div className="overflow-x-auto border-2 border-[#4A3428] bg-white p-4 shadow-sm">
+      <Title>Products</Title>
+      <div className="overflow-x-auto rounded-lg border border-[#D0BCA0] bg-white p-4 shadow-sm">
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b-2 border-[#4A3428] bg-[#FDFBF9]">
+          <thead className="bg-[#FDFBF9] text-[#8C6A48]">
             <tr>
-              <th className="px-3 py-3">[Product]</th>
-              <th className="px-3 py-3">[Category]</th>
-              <th className="px-3 py-3">[Price]</th>
-              <th className="px-3 py-3">[Stock]</th>
-              <th className="px-3 py-3">[Status]</th>
-              <th className="px-3 py-3">[Actions]</th>
+              <th className="px-3 py-3">Product</th>
+              <th className="px-3 py-3">Category</th>
+              <th className="px-3 py-3">Price</th>
+              <th className="px-3 py-3">Stock</th>
+              <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
               <tr key={`${item.source}-${item.productId}`} className="border-b border-[#D0BCA0]">
-                <td className="px-3 py-4 font-bold uppercase">{item.name}</td>
+                <td className="px-3 py-4 font-black text-[#4A3428]">{item.name}</td>
                 <td className="px-3 py-4">{item.category}</td>
                 <td className="px-3 py-4">{formatCurrency(item.price)}</td>
                 <td className="px-3 py-4">{item.stock}</td>
                 <td className="px-3 py-4">{item.status}</td>
                 <td className="px-3 py-4">
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onView(item)}
-                      className="border-2 border-[#4A3428] px-3 py-2 text-xs font-bold hover:bg-[#F5F2F0]"
-                    >
-                      [View]
+                    <button type="button" onClick={() => onView(item)} className="rounded-lg border border-[#D0BCA0] px-3 py-2 text-xs font-black hover:border-[#4A3428]">
+                      View
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(item)}
-                      className="border-2 border-red-600 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50"
-                    >
-                      [Remove]
+                    <button type="button" onClick={() => onDelete(item)} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50">
+                      Remove
                     </button>
                   </div>
                 </td>
@@ -306,7 +298,7 @@ function ProductsView({ items, isLoading, onView, onDelete }) {
             {items.length === 0 && (
               <tr>
                 <td colSpan="6" className="px-3 py-10 text-center font-bold text-[#8C6A48]">
-                  {isLoading ? "[Loading products...]" : "[No products found]"}
+                  {isLoading ? "Loading products..." : "No products found"}
                 </td>
               </tr>
             )}
@@ -320,46 +312,46 @@ function ProductsView({ items, isLoading, onView, onDelete }) {
 function PendingView({ items, isLoading, onReview }) {
   return (
     <section>
-      <Title>[Pending Approval Queue]</Title>
+      <Title>Pending Approval Queue</Title>
       <div className="space-y-6">
         {items.map((item) => (
-          <article key={item.productId} className="flex flex-col border-2 border-[#4A3428] bg-white shadow-sm md:flex-row">
-            <div className="h-48 bg-[#F5F2F0] md:w-48 md:border-r-2 md:border-[#4A3428]">
+          <article key={item.productId} className="flex flex-col overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm md:flex-row">
+            <div className="h-48 bg-[#F5F2F0] md:w-48">
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm font-bold text-[#8C6A48]">[No Image]</div>
+                <div className="flex h-full items-center justify-center text-sm font-bold text-[#8C6A48]">No Image</div>
               )}
             </div>
             <div className="flex-1 p-6">
-              <h3 className="text-lg font-bold uppercase">{item.name}</h3>
+              <h3 className="text-lg font-black text-[#4A3428]">{item.name}</h3>
               <p className="mt-1 text-sm text-[#8C6A48]">By: {item.owner?.firstName} {item.owner?.lastName}</p>
-              <p className="mt-4 text-xl font-bold">{formatCurrency(item.price)}</p>
+              <p className="mt-4 text-xl font-black">{formatCurrency(item.price)}</p>
             </div>
-            <div className="grid gap-3 border-t-2 border-[#4A3428] bg-[#FDFBF9] p-6 md:w-64 md:border-l-2 md:border-t-0">
+            <div className="grid gap-3 border-t border-[#D0BCA0] bg-[#FDFBF9] p-6 md:w-64 md:border-l md:border-t-0">
               <button
                 type="button"
                 onClick={() => onReview(item.productId, "APPROVED")}
-                className="flex items-center justify-center gap-2 border-2 border-[#4A3428] bg-[#4A3428] py-2 font-bold text-white hover:bg-[#3E2B22]"
+                className="flex items-center justify-center gap-2 rounded-lg bg-[#4A3428] py-2 font-black text-white hover:bg-[#3E2B22]"
               >
                 <Check size={18} />
-                [Approve]
+                Approve
               </button>
               <button
                 type="button"
                 onClick={() => onReview(item.productId, "REJECTED")}
-                className="flex items-center justify-center gap-2 border-2 border-red-600 bg-white py-2 font-bold text-red-600 hover:bg-red-50"
+                className="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white py-2 font-black text-red-600 hover:bg-red-50"
               >
                 <X size={18} />
-                [Reject]
+                Reject
               </button>
             </div>
           </article>
         ))}
 
         {items.length === 0 && (
-          <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-20 text-center font-bold text-[#8C6A48]">
-            {isLoading ? "[Loading pending listings...]" : "[No listings awaiting review]"}
+          <div className="rounded-lg border border-dashed border-[#D0BCA0] bg-white p-20 text-center font-bold text-[#8C6A48]">
+            {isLoading ? "Loading pending listings..." : "No listings awaiting review"}
           </div>
         )}
       </div>
@@ -370,21 +362,21 @@ function PendingView({ items, isLoading, onReview }) {
 function OrdersView({ orders, onStatusChange }) {
   return (
     <section>
-      <Title>[Orders]</Title>
+      <Title>Orders</Title>
       <div className="space-y-4">
         {orders.map((order) => (
-          <article key={order.orderNumber} className="border-2 border-[#4A3428] bg-white p-5 shadow-sm">
+          <article key={order.orderNumber} className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-bold">{order.orderNumber}</p>
+                <p className="font-black text-[#4A3428]">{order.orderNumber}</p>
                 <p className="text-sm text-[#8C6A48]">{order.items?.length || 0} item(s)</p>
               </div>
               <div className="text-left sm:text-right">
-                <p className="font-bold">{formatCurrency(order.total)}</p>
+                <p className="font-black">{formatCurrency(order.total)}</p>
                 <select
                   value={order.status}
                   onChange={(event) => onStatusChange(order.orderNumber, event.target.value)}
-                  className="mt-2 border-2 border-[#4A3428] bg-white px-3 py-2 text-sm font-bold outline-none"
+                  className="mt-2 rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-3 py-2 text-sm font-bold outline-none focus:border-[#4A3428]"
                 >
                   <option>Processing</option>
                   <option>Ready for Pickup</option>
@@ -404,14 +396,14 @@ function OrdersView({ orders, onStatusChange }) {
 function UsersView({ profile }) {
   return (
     <section>
-      <Title>[Users]</Title>
+      <Title>Users</Title>
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="border-2 border-[#4A3428] bg-white p-5 shadow-sm">
-          <p className="font-bold uppercase">[Admin Account]</p>
+        <div className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
+          <p className="font-black text-[#4A3428]">Admin Account</p>
           <p className="mt-2 text-sm text-[#8C6A48]">{profile.email}</p>
         </div>
-        <div className="border-2 border-[#4A3428] bg-white p-5 shadow-sm">
-          <p className="font-bold uppercase">[Role]</p>
+        <div className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
+          <p className="font-black text-[#4A3428]">Role</p>
           <p className="mt-2 text-sm text-[#8C6A48]">ADMIN</p>
         </div>
       </div>
@@ -421,19 +413,17 @@ function UsersView({ profile }) {
 
 function Title({ children }) {
   return (
-    <div className="mb-10 inline-block border-2 border-[#4A3428] bg-white px-4 py-2 shadow-sm">
-      <h2 className="text-xl font-bold">{children}</h2>
+    <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white px-5 py-4 shadow-sm">
+      <h2 className="text-2xl font-black tracking-tight text-[#4A3428]">{children}</h2>
     </div>
   );
 }
 
 function Metric({ label, value }) {
   return (
-    <div className="flex flex-col items-center border-2 border-[#4A3428] bg-white p-6 shadow-sm">
-      <div className="mb-5 border-2 border-[#D0BCA0] bg-[#FDFBF9] px-3 py-1 text-sm font-bold text-[#8C6A48]">
-        {label}
-      </div>
-      <div className="border-2 border-[#4A3428] p-4 text-3xl font-bold">{value}</div>
+    <div className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
+      <p className="text-sm font-bold text-[#8C6A48]">{label}</p>
+      <p className="mt-2 text-3xl font-black text-[#4A3428]">{value}</p>
     </div>
   );
 }

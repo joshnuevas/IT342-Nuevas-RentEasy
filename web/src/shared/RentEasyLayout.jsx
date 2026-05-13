@@ -15,10 +15,10 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
   };
 
   return (
-    <header className="rent-header-motion sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#D0BCA0] bg-white px-6">
+    <header className="rent-header-motion sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#D0BCA0] bg-white/95 px-6 shadow-sm backdrop-blur">
       <button
         type="button"
-        className="border-2 border-[#4A3428] bg-[#FDFBF9] px-4 py-1.5 font-bold tracking-wide text-[#4A3428]"
+        className="rounded-lg bg-[#4A3428] px-4 py-2 font-black tracking-wide text-white shadow-sm hover:bg-[#3E2B22]"
         onClick={() => navigate("/home")}
       >
         RentEasy
@@ -30,8 +30,8 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
           type="search"
           value={searchValue}
           onChange={(event) => onSearchChange?.(event.target.value)}
-          placeholder="[Search]"
-          className="w-full border-2 border-[#D0BCA0] bg-white py-1.5 pl-10 pr-4 text-sm text-[#4A3428] outline-none focus:border-[#4A3428]"
+          placeholder="Search"
+          className="h-10 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] pl-10 pr-4 text-sm text-[#4A3428] outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
         />
       </div>
 
@@ -39,22 +39,15 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
         <button
           type="button"
           onClick={() => navigate("/create-listing")}
-          className="hidden items-center gap-2 border-2 border-[#4A3428] px-3 py-1.5 text-sm font-medium hover:bg-[#F5F2F0] sm:flex"
+          className="hidden h-10 items-center gap-2 rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-3 text-sm font-bold text-[#4A3428] hover:border-[#4A3428] hover:bg-white sm:flex"
         >
-          <Plus size={16} /> [List Item]
+          <Plus size={16} /> List Item
         </button>
-        <button
-          type="button"
-          onClick={() => navigate("/my-listings")}
-          className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0]"
-          title="My Listings"
-        >
-          <List size={18} />
-        </button>
+        <IconButton title="My Listings" onClick={() => navigate("/my-listings")} icon={List} />
         <button
           type="button"
           onClick={() => navigate("/cart")}
-          className="relative border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0]"
+          className="relative grid h-10 w-10 place-items-center rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] text-[#4A3428] hover:border-[#4A3428] hover:bg-white"
           title="Cart"
         >
           <ShoppingCart size={18} />
@@ -64,21 +57,14 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
             </span>
           )}
         </button>
-        <button
-          type="button"
-          onClick={() => navigate("/profile")}
-          className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0]"
-          title="Profile"
-        >
-          <UserRound size={18} />
-        </button>
+        <IconButton title="Profile" onClick={() => navigate("/profile")} icon={UserRound} />
         <button
           type="button"
           onClick={handleLogout}
-          className="border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold hover:bg-[#4A3428] hover:text-white"
+          className="flex h-10 items-center gap-2 rounded-lg border border-[#D0BCA0] px-3 text-sm font-bold text-[#4A3428] hover:border-[#4A3428] hover:bg-[#4A3428] hover:text-white"
         >
-          <LogOut size={16} className="inline sm:hidden" />
-          <span className="hidden sm:inline">[Logout]</span>
+          <LogOut size={16} className="sm:hidden" />
+          <span className="hidden sm:inline">Logout</span>
         </button>
       </div>
     </header>
@@ -96,13 +82,26 @@ export function Page({ children, searchValue, onSearchChange, cartCount }) {
 
 export function EmptyState({ icon: Icon = UserRound, title, description, action }) {
   return (
-    <div className="rent-card-motion border-2 border-dashed border-[#D0BCA0] bg-white p-12 text-center shadow-sm">
-      <div className="mx-auto mb-4 grid h-14 w-14 place-items-center border-2 border-[#4A3428] bg-[#FDFBF9] text-[#4A3428]">
+    <div className="rent-card-motion rounded-lg border border-dashed border-[#D0BCA0] bg-white p-12 text-center shadow-sm">
+      <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-lg bg-[#FDFBF9] text-[#4A3428] ring-1 ring-[#D0BCA0]">
         {createElement(Icon, { className: "h-7 w-7" })}
       </div>
       <h2 className="text-lg font-black text-[#4A3428]">{title}</h2>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8C6A48]">{description}</p>
       {action && <div className="mt-6">{action}</div>}
     </div>
+  );
+}
+
+function IconButton({ title, onClick, icon }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="grid h-10 w-10 place-items-center rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] text-[#4A3428] hover:border-[#4A3428] hover:bg-white"
+      title={title}
+    >
+      {createElement(icon, { size: 18 })}
+    </button>
   );
 }

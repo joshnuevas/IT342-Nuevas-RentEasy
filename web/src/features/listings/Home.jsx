@@ -28,9 +28,8 @@ export default function Home() {
     async function fetchData() {
       try {
         const productResponse = await getApprovedProducts();
-        if (!productResponse.ok) {
-          throw new Error("Failed to load products.");
-        }
+        if (!productResponse.ok) throw new Error("Failed to load products.");
+
         const productData = await productResponse.json();
         if (isMounted) setRemoteProducts(Array.isArray(productData) ? productData : []);
 
@@ -81,27 +80,24 @@ export default function Home() {
 
   return (
     <Page searchValue={search} onSearchChange={setSearch}>
-      <section className="mx-auto max-w-7xl p-8">
-        <div className="mb-8 flex flex-col items-start gap-4 border-2 border-[#4A3428] bg-white p-4 shadow-sm sm:flex-row sm:items-center">
-          <h1 className="border-2 border-[#4A3428] bg-[#FDFBF9] px-6 py-2 text-xl font-bold">Product Listing</h1>
-          <span className="border-2 border-[#D0BCA0] px-4 py-2 text-sm font-medium text-[#8C6A48]">
-            [Browse rental products]
-          </span>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Product Listing</h1>
         </div>
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-[#8C6A48]">
             <Loader2 className="mb-4 h-10 w-10 animate-spin" />
-            <p className="border-2 border-[#D0BCA0] bg-white px-4 py-2 text-sm font-bold">Loading database...</p>
+            <p className="text-sm font-bold">Loading products...</p>
           </div>
         ) : error && products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-red-700">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50 py-20 text-red-700">
             <AlertCircle className="mb-3 h-10 w-10" />
-            <p className="border-2 border-red-500 bg-white p-4 text-sm font-bold">{error}</p>
+            <p className="text-sm font-bold">{error}</p>
           </div>
         ) : products.length === 0 ? (
-          <div className="border-2 border-dashed border-[#D0BCA0] bg-white py-20 text-center">
-            <p className="font-bold text-[#8C6A48]">[No approved listings yet]</p>
+          <div className="rounded-lg border border-dashed border-[#D0BCA0] bg-white py-20 text-center">
+            <p className="font-bold text-[#8C6A48]">No approved listings yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -125,40 +121,31 @@ export default function Home() {
 function ProductCard({ product, currentUserEmail, isInCart, addToCart, onView }) {
   const isOwner = product.owner?.email === currentUserEmail;
   const disabled = isOwner || isInCart;
-  const buttonText = isOwner ? "[Your Listing]" : isInCart ? "[In Cart]" : "[Add to Cart]";
+  const buttonText = isOwner ? "Your Listing" : isInCart ? "In Cart" : "Add to Cart";
 
   return (
-    <article className="rent-card-motion flex flex-col border-2 border-[#4A3428] bg-white shadow-sm">
-      <button
-        type="button"
-        onClick={onView}
-        className="flex h-64 items-center justify-center overflow-hidden border-b-2 border-[#4A3428] bg-[#F5F2F0]"
-      >
+    <article className="rent-card-motion flex flex-col overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm">
+      <button type="button" onClick={onView} className="flex h-64 items-center justify-center bg-[#F5F2F0]">
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
         ) : (
           <ImageIcon size={40} className="text-[#8C6A48] opacity-40" />
         )}
       </button>
-      <div className="flex flex-col gap-3 p-4">
-        <button
-          type="button"
-          onClick={onView}
-          className="truncate border-2 border-[#4A3428] bg-[#FDFBF9] px-3 py-2 text-left text-sm font-bold uppercase"
-        >
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <button type="button" onClick={onView} className="truncate text-left text-lg font-black text-[#4A3428] hover:underline">
           {product.name}
         </button>
-        <div className="border-2 border-[#D0BCA0] px-3 py-2 text-sm font-medium text-[#8C6A48]">
-          {formatCurrency(product.price)} / day
-        </div>
+        <p className="text-sm font-bold text-[#8C6A48]">{product.category}</p>
+        <p className="mt-auto text-base font-black text-[#4A3428]">{formatCurrency(product.price)} / day</p>
         <button
           type="button"
           disabled={disabled}
           onClick={() => addToCart(product)}
-          className={`w-full border-2 py-2.5 text-sm font-bold uppercase transition-colors ${
+          className={`mt-2 h-11 rounded-lg text-sm font-black uppercase tracking-wide transition-colors ${
             disabled
-              ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-              : "border-[#4A3428] text-[#4A3428] hover:bg-[#4A3428] hover:text-white"
+              ? "cursor-not-allowed bg-gray-100 text-gray-400"
+              : "bg-[#4A3428] text-white hover:bg-[#3E2B22]"
           }`}
         >
           {buttonText}

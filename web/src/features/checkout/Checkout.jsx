@@ -63,9 +63,7 @@ export default function Checkout() {
 
     try {
       const response = await createPayMongoCheckout(payload);
-      if (!response.ok) {
-        throw new Error(await readPaymentError(response));
-      }
+      if (!response.ok) throw new Error(await readPaymentError(response));
 
       const checkout = await response.json();
       const order = saveOrder({
@@ -97,9 +95,9 @@ export default function Checkout() {
 
   return (
     <Page>
-      <section className="mx-auto max-w-7xl p-8">
-        <div className="mb-8 inline-block border-2 border-[#4A3428] bg-white p-3 shadow-sm">
-          <h1 className="text-xl font-bold text-[#4A3428]">[Checkout]</h1>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Checkout</h1>
         </div>
 
         {paymentStatus === "cancelled" && (
@@ -109,57 +107,55 @@ export default function Checkout() {
         {paymentError && <Message tone="error">{paymentError}</Message>}
 
         {items.length === 0 ? (
-          <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-16 text-center">
-            <p className="mb-5 font-bold text-[#8C6A48]">[No items in checkout]</p>
+          <div className="rounded-lg border border-dashed border-[#D0BCA0] bg-white p-16 text-center">
+            <p className="mb-5 font-bold text-[#8C6A48]">No items in checkout</p>
             <button
               type="button"
               onClick={() => navigate("/home")}
-              className="border-2 border-[#4A3428] px-8 py-3 font-bold hover:bg-[#4A3428] hover:text-white"
+              className="rounded-lg bg-[#4A3428] px-8 py-3 font-black text-white hover:bg-[#3E2B22]"
             >
-              [Browse Products]
+              Browse Products
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
-            <section className="border-2 border-[#4A3428] bg-white p-8 shadow-sm">
-              <h2 className="mb-6 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">[Shipping Details]</h2>
+            <section className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="mb-6 text-lg font-black text-[#4A3428]">Shipping Details</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="[Full Name]" name="name" value={shipping.name} onChange={handleChange} />
-                <Input label="[Email]" name="email" type="email" value={shipping.email} onChange={handleChange} />
-                <Input label="[Phone]" name="phone" value={shipping.phone} onChange={handleChange} />
-                <Input label="[City]" name="city" value={shipping.city} onChange={handleChange} />
-                <label className="block space-y-2 sm:col-span-2">
-                  <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
-                    [Complete Address]
-                  </span>
+                <Input label="Full Name" name="name" value={shipping.name} onChange={handleChange} />
+                <Input label="Email" name="email" type="email" value={shipping.email} onChange={handleChange} />
+                <Input label="Phone" name="phone" value={shipping.phone} onChange={handleChange} />
+                <Input label="City" name="city" value={shipping.city} onChange={handleChange} />
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-sm font-bold text-[#4A3428]">Complete Address</span>
                   <input
                     name="address"
                     value={shipping.address}
                     onChange={handleChange}
                     required
-                    className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+                    className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
                   />
                 </label>
-                <Input label="[ZIP Code]" name="zip" value={shipping.zip} onChange={handleChange} />
+                <Input label="ZIP Code" name="zip" value={shipping.zip} onChange={handleChange} />
               </div>
             </section>
 
-            <aside className="h-fit border-2 border-[#4A3428] bg-white p-6 shadow-sm">
-              <h2 className="mb-5 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">[Order Summary]</h2>
+            <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-lg font-black text-[#4A3428]">Order Summary</h2>
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between gap-3 border-b border-[#D0BCA0] pb-3 text-sm">
-                    <span className="font-bold">{item.product?.name} x {item.quantity}</span>
+                    <span className="font-bold text-[#4A3428]">{item.product?.name} x {item.quantity}</span>
                     <span>{formatCurrency((item.product?.price || 0) * item.quantity)}</span>
                   </div>
                 ))}
               </div>
 
               <div className="mt-5 space-y-2 text-sm">
-                <Row label="Subtotal:" value={formatCurrency(subtotal)} />
-                <Row label="Service Fee:" value={formatCurrency(serviceFee)} />
-                <div className="flex justify-between border-t-2 border-[#D0BCA0] pt-4 text-lg font-bold">
-                  <span>Total:</span>
+                <Row label="Subtotal" value={formatCurrency(subtotal)} />
+                <Row label="Service Fee" value={formatCurrency(serviceFee)} />
+                <div className="flex justify-between border-t border-[#D0BCA0] pt-4 text-lg font-black text-[#4A3428]">
+                  <span>Total</span>
                   <span>{formatCurrency(total)}</span>
                 </div>
               </div>
@@ -167,9 +163,9 @@ export default function Checkout() {
               <button
                 type="submit"
                 disabled={!isReady || isPaying}
-                className="mt-6 flex w-full items-center justify-center border-2 border-[#4A3428] bg-[#4A3428] py-4 font-bold uppercase text-white hover:bg-[#3E2B22] disabled:opacity-60"
+                className="mt-6 flex h-12 w-full items-center justify-center rounded-lg bg-[#4A3428] font-black uppercase tracking-wide text-white hover:bg-[#3E2B22] disabled:opacity-60"
               >
-                {isPaying ? <Loader2 className="h-5 w-5 animate-spin" /> : "[Pay with PayMongo]"}
+                {isPaying ? <Loader2 className="h-5 w-5 animate-spin" /> : "Pay with PayMongo"}
               </button>
             </aside>
           </form>
@@ -195,11 +191,11 @@ async function readPaymentError(response) {
 function Message({ tone, children }) {
   const className =
     tone === "error"
-      ? "border-red-500 bg-red-50 text-red-700"
-      : "border-amber-500 bg-amber-50 text-amber-900";
+      ? "border-red-200 bg-red-50 text-red-700"
+      : "border-amber-200 bg-amber-50 text-amber-900";
 
   return (
-    <div className={`mb-6 flex items-center gap-3 border-2 p-4 text-sm font-bold ${className}`}>
+    <div className={`mb-6 flex items-center gap-3 rounded-lg border p-4 text-sm font-bold ${className}`}>
       <AlertCircle className="h-5 w-5 shrink-0" />
       <span>{children}</span>
     </div>
@@ -208,14 +204,12 @@ function Message({ tone, children }) {
 
 function Input({ label, ...props }) {
   return (
-    <label className="block space-y-2">
-      <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
-        {label}
-      </span>
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
       <input
         {...props}
         required
-        className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
       />
     </label>
   );
@@ -223,9 +217,9 @@ function Input({ label, ...props }) {
 
 function Row({ label, value }) {
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-between text-[#8C6A48]">
       <span>{label}</span>
-      <span className="font-bold">{value}</span>
+      <span className="font-bold text-[#4A3428]">{value}</span>
     </div>
   );
 }

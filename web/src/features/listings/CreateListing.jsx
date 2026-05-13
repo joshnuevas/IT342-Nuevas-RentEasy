@@ -50,10 +50,7 @@ export default function CreateListing() {
     try {
       const token = localStorage.getItem("token");
       const response = await createListing(payload, token);
-
-      if (!response.ok) {
-        throw new Error("Failed to create listing.");
-      }
+      if (!response.ok) throw new Error("Failed to create listing.");
     } catch {
       saveStoredListing(payload);
     } finally {
@@ -64,93 +61,69 @@ export default function CreateListing() {
 
   return (
     <Page>
-      <section className="mx-auto max-w-3xl p-6 md:p-8">
-        <div className="mb-8 inline-block border-2 border-[#4A3428] bg-white p-3 shadow-sm">
-          <h1 className="text-xl font-bold text-[#4A3428]">List a Product for Rent</h1>
+      <section className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">List a Product for Rent</h1>
         </div>
 
         {error && (
-          <div className="mb-6 flex items-center gap-3 border-2 border-red-500 bg-red-50 p-4 text-sm font-bold text-red-800">
+          <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8 border-2 border-[#4A3428] bg-white p-8 shadow-sm">
-          <div className="space-y-2">
-            <label className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
-              [Product Image *]
-            </label>
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm sm:p-8">
+          <div>
+            <label className="mb-2 block text-sm font-bold text-[#4A3428]">Product Image</label>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex h-64 w-full flex-col items-center justify-center overflow-hidden border-2 border-dashed border-[#8C6A48] bg-[#FDFBF9] hover:bg-[#F5F2F0]"
+              className="flex h-64 w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-[#D0BCA0] bg-[#FDFBF9] hover:border-[#4A3428] hover:bg-white"
             >
               {formData.imageUrl ? (
                 <img src={formData.imageUrl} alt="Preview" className="h-full w-full object-contain" />
               ) : (
                 <>
                   <Upload className="mb-3 h-8 w-8 text-[#8C6A48]" />
-                  <span className="border-2 border-[#4A3428] bg-white px-3 py-1 text-sm font-bold">
-                    [Click to select image]
-                  </span>
+                  <span className="text-sm font-bold text-[#4A3428]">Click to select image</span>
                 </>
               )}
             </button>
           </div>
 
-          <Input label="[Product Name *]" name="name" value={formData.name} onChange={handleChange} />
+          <Input label="Product Name" name="name" value={formData.name} onChange={handleChange} />
 
-          <label className="block space-y-2">
-            <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
-              [Category *]
-            </span>
+          <label className="block">
+            <span className="mb-2 block text-sm font-bold text-[#4A3428]">Category</span>
             <select
               name="category"
               value={formData.category}
               onChange={handleChange}
               required
-              className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+              className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
             >
-              <option value="" disabled>[Select a category]</option>
+              <option value="" disabled>Select a category</option>
               {categories.filter((item) => item !== "All").map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
+                <option key={item} value={item}>{item}</option>
               ))}
             </select>
           </label>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="[Rental Price (per day) *]"
-              type="number"
-              name="price"
-              min="1"
-              value={formData.price}
-              onChange={handleChange}
-            />
-            <Input
-              label="[Quantity in Stock *]"
-              type="number"
-              name="stock"
-              min="1"
-              value={formData.stock}
-              onChange={handleChange}
-            />
+            <Input label="Rental Price (per day)" type="number" name="price" min="1" value={formData.price} onChange={handleChange} />
+            <Input label="Quantity in Stock" type="number" name="stock" min="1" value={formData.stock} onChange={handleChange} />
           </div>
 
-          <label className="block space-y-2">
-            <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
-              [Description *]
-            </span>
+          <label className="block">
+            <span className="mb-2 block text-sm font-bold text-[#4A3428]">Description</span>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               required
-              className="h-32 w-full resize-y border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+              className="h-32 w-full resize-y rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] p-3 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
             />
           </label>
 
@@ -158,16 +131,16 @@ export default function CreateListing() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center justify-center border-2 border-[#4A3428] bg-[#4A3428] py-3 font-bold text-white hover:bg-[#3E2B22] disabled:opacity-70"
+              className="flex h-12 items-center justify-center rounded-lg bg-[#4A3428] font-black uppercase tracking-wide text-white hover:bg-[#3E2B22] disabled:opacity-70"
             >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "[Submit for Approval]"}
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Submit for Approval"}
             </button>
             <button
               type="button"
               onClick={() => navigate("/home")}
-              className="border-2 border-[#4A3428] py-3 font-bold text-[#4A3428] hover:bg-[#F5F2F0]"
+              className="h-12 rounded-lg border border-[#D0BCA0] font-black text-[#4A3428] hover:border-[#4A3428] hover:bg-[#FDFBF9]"
             >
-              [Cancel]
+              Cancel
             </button>
           </div>
         </form>
@@ -178,14 +151,12 @@ export default function CreateListing() {
 
 function Input({ label, ...props }) {
   return (
-    <label className="block space-y-2">
-      <span className="inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-2 py-1 text-sm font-bold">
-        {label}
-      </span>
+    <label className="block">
+      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
       <input
         {...props}
         required
-        className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
       />
     </label>
   );

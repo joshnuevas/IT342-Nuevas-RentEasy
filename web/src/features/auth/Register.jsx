@@ -58,20 +58,20 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-[#F5F2F0] px-4 py-10 font-sans text-[#4A3428]">
       <main className="rent-auth-motion mx-auto flex min-h-[calc(100vh-5rem)] max-w-2xl items-center justify-center">
-        <section className="w-full border-2 border-[#4A3428] bg-white p-8 shadow-sm">
+        <section className="w-full rounded-lg border border-[#D0BCA0] bg-white p-8 shadow-xl shadow-[#D0BCA0]/45">
           <div className="mb-8 text-center">
-            <div className="rent-logo-pulse mx-auto mb-5 inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-6 py-2 text-2xl font-black">
+            <div className="rent-logo-pulse mx-auto mb-5 inline-block rounded-lg bg-[#4A3428] px-6 py-3 text-2xl font-black text-white shadow-sm">
               RentEasy
             </div>
-            <h1 className="text-xl font-bold uppercase">[Register]</h1>
+            <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Create Account</h1>
           </div>
 
           {status.message && (
             <div
-              className={`mb-5 border-2 px-4 py-3 text-sm font-bold ${
+              className={`mb-5 rounded-lg border px-4 py-3 text-sm font-bold ${
                 status.type === "success"
                   ? "border-[#D0BCA0] bg-[#FDFBF9] text-[#4A3428]"
-                  : "border-red-500 bg-red-50 text-red-700"
+                  : "border-red-200 bg-red-50 text-red-700"
               }`}
             >
               {status.message}
@@ -80,13 +80,13 @@ export default function Register() {
 
           <form onSubmit={handleRegister} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="[First Name]" name="firstName" value={formData.firstName} onChange={handleChange} />
-              <Input label="[Last Name]" name="lastName" value={formData.lastName} onChange={handleChange} />
+              <Input label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} />
+              <Input label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} />
             </div>
-            <Input label="[Email]" type="email" name="email" value={formData.email} onChange={handleChange} />
-            <Input label="[Password]" type="password" name="password" value={formData.password} onChange={handleChange} />
+            <Input label="Email" type="email" name="email" value={formData.email} onChange={handleChange} />
+            <Input label="Password" type="password" name="password" value={formData.password} onChange={handleChange} />
             <Input
-              label="[Confirm Password]"
+              label="Confirm Password"
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
@@ -96,16 +96,16 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full items-center justify-center border-2 border-[#4A3428] bg-[#4A3428] py-3 font-bold uppercase text-white hover:bg-[#3E2B22] disabled:opacity-70"
+              className="flex h-12 w-full items-center justify-center rounded-lg bg-[#4A3428] font-black uppercase tracking-wide text-white shadow-sm hover:bg-[#3E2B22] disabled:opacity-70"
             >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "[Create Account]"}
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create Account"}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm font-medium text-[#8C6A48]">
-            [Already registered?]{" "}
-            <Link to="/login" className="font-bold text-[#4A3428] underline">
-              [Login]
+            Already registered?{" "}
+            <Link to="/login" className="font-black text-[#4A3428] hover:underline">
+              Login
             </Link>
           </p>
         </section>
@@ -117,13 +117,11 @@ export default function Register() {
 function Input({ label, ...props }) {
   return (
     <label className="block">
-      <span className="mb-2 inline-block border-2 border-[#4A3428] bg-[#FDFBF9] px-3 py-1 text-sm font-bold">
-        {label}
-      </span>
+      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
       <input
         {...props}
         required
-        className="w-full border-2 border-[#4A3428] bg-white p-3 text-sm outline-none focus:bg-[#FDFBF9]"
+        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
       />
     </label>
   );

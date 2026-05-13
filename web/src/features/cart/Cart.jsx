@@ -70,24 +70,22 @@ export default function Cart() {
 
   return (
     <Page cartCount={items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)}>
-      <section className="mx-auto max-w-7xl p-8">
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {isLoading ? (
           <div className="flex justify-center py-20 text-[#8C6A48]">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24">
-            <div className="flex w-full max-w-xl flex-col items-center gap-6 border-2 border-[#4A3428] bg-white p-12 text-center shadow-sm">
-              <div className="border-2 border-[#4A3428] bg-[#FDFBF9] px-8 py-3 text-2xl font-bold uppercase">
-                [Cart Empty]
-              </div>
-              <div className="border border-[#D0BCA0] px-4 py-1 text-sm text-[#8C6A48]">[No items in cart]</div>
+            <div className="flex w-full max-w-xl flex-col items-center gap-6 rounded-lg border border-[#D0BCA0] bg-white p-12 text-center shadow-sm">
+              <h1 className="text-3xl font-black text-[#4A3428]">Cart Empty</h1>
+              <p className="text-sm font-bold text-[#8C6A48]">No items in cart</p>
               <button
                 type="button"
                 onClick={() => navigate("/home")}
-                className="border-2 border-[#4A3428] px-8 py-3 font-bold hover:bg-[#4A3428] hover:text-white"
+                className="rounded-lg bg-[#4A3428] px-8 py-3 font-black text-white hover:bg-[#3E2B22]"
               >
-                [Browse Products]
+                Browse Products
               </button>
             </div>
           </div>
@@ -95,8 +93,8 @@ export default function Cart() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
               {items.map((item) => (
-                <article key={item.id} className="rent-card-motion flex gap-6 border-2 border-[#4A3428] bg-white p-4 shadow-sm">
-                  <div className="h-32 w-32 flex-shrink-0 border border-[#D0BCA0] bg-[#F5F2F0]">
+                <article key={item.id} className="rent-card-motion flex gap-6 rounded-lg border border-[#D0BCA0] bg-white p-4 shadow-sm">
+                  <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-[#F5F2F0] ring-1 ring-[#D0BCA0]">
                     {item.product?.imageUrl ? (
                       <img src={item.product.imageUrl} className="h-full w-full object-cover" alt={item.product.name} />
                     ) : (
@@ -107,22 +105,14 @@ export default function Cart() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="mb-2 border-b border-[#D0BCA0] pb-1 font-bold uppercase">{item.product?.name}</h3>
-                    <p className="mb-4 text-sm text-[#8C6A48]">{formatCurrency(item.product?.price)} / day</p>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        className="border border-[#4A3428] px-2 font-bold"
-                        onClick={() => updateQty(item.id, item.quantity - 1)}
-                      >
+                    <h3 className="mb-2 font-black text-[#4A3428]">{item.product?.name}</h3>
+                    <p className="mb-4 text-sm font-bold text-[#8C6A48]">{formatCurrency(item.product?.price)} / day</p>
+                    <div className="inline-flex items-center overflow-hidden rounded-lg border border-[#D0BCA0] bg-[#FDFBF9]">
+                      <button type="button" className="h-9 w-10 font-bold hover:bg-white" onClick={() => updateQty(item.id, item.quantity - 1)}>
                         -
                       </button>
-                      <span className="min-w-8 text-center text-lg font-bold">{item.quantity}</span>
-                      <button
-                        type="button"
-                        className="border border-[#4A3428] px-2 font-bold"
-                        onClick={() => updateQty(item.id, item.quantity + 1)}
-                      >
+                      <span className="min-w-10 text-center text-sm font-black">{item.quantity}</span>
+                      <button type="button" className="h-9 w-10 font-bold hover:bg-white" onClick={() => updateQty(item.id, item.quantity + 1)}>
                         +
                       </button>
                     </div>
@@ -131,7 +121,7 @@ export default function Cart() {
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
-                    className="self-start p-1 text-red-600 hover:bg-red-50"
+                    className="self-start rounded-lg p-2 text-red-600 hover:bg-red-50"
                     title="Remove item"
                   >
                     <X size={20} />
@@ -140,20 +130,20 @@ export default function Cart() {
               ))}
             </div>
 
-            <aside className="h-fit border-2 border-[#4A3428] bg-white p-6 shadow-sm">
-              <h2 className="mb-4 border-b-2 border-[#4A3428] pb-2 font-bold uppercase">Order Summary</h2>
-              <Row label="Subtotal:" value={formatCurrency(subtotal)} />
-              <Row label="Service Fee:" value={formatCurrency(serviceFee)} />
-              <div className="mb-8 mt-4 flex justify-between border-t-2 border-[#D0BCA0] pt-4">
-                <span className="text-xl font-bold uppercase">Total:</span>
-                <span className="text-xl font-bold text-[#4A3428]">{formatCurrency(total)}</span>
+            <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-lg font-black text-[#4A3428]">Order Summary</h2>
+              <Row label="Subtotal" value={formatCurrency(subtotal)} />
+              <Row label="Service Fee" value={formatCurrency(serviceFee)} />
+              <div className="mb-8 mt-4 flex justify-between border-t border-[#D0BCA0] pt-4">
+                <span className="text-xl font-black text-[#4A3428]">Total</span>
+                <span className="text-xl font-black text-[#4A3428]">{formatCurrency(total)}</span>
               </div>
               <button
                 type="button"
                 onClick={() => navigate("/checkout", { state: { items } })}
-                className="w-full border-2 border-[#4A3428] bg-[#4A3428] py-4 font-bold uppercase tracking-wider text-white hover:bg-[#3E2B22]"
+                className="h-12 w-full rounded-lg bg-[#4A3428] font-black uppercase tracking-wide text-white hover:bg-[#3E2B22]"
               >
-                [Proceed to Checkout]
+                Proceed to Checkout
               </button>
             </aside>
           </div>
@@ -165,9 +155,9 @@ export default function Cart() {
 
 function Row({ label, value }) {
   return (
-    <div className="mb-2 flex justify-between">
+    <div className="mb-3 flex justify-between text-sm text-[#8C6A48]">
       <span>{label}</span>
-      <span className="font-bold">{value}</span>
+      <span className="font-black text-[#4A3428]">{value}</span>
     </div>
   );
 }
