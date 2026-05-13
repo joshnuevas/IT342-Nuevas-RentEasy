@@ -1,103 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:background="@color/renteasy_canvas"
+    android:fillViewport="true">
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login"
-        android:textAlignment="center"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="32dp" />
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="22dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Email Address"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/renteasy_card"
+            android:elevation="3dp"
+            android:orientation="vertical"
+            android:padding="22dp">
 
-    <EditText
-        android:id="@+id/etLoginEmail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter your email"
-        android:inputType="textEmailAddress"
-        android:layout_marginBottom="16dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="RentEasy"
+                android:textColor="@color/renteasy_brown"
+                android:textSize="30sp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Password"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="24dp"
+                android:text="Login to rent, list, and manage products."
+                android:textColor="@color/renteasy_caramel"
+                android:textSize="14sp" />
 
-    <EditText
-        android:id="@+id/etLoginPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="••••••••"
-        android:inputType="textPassword"
-        android:layout_marginBottom="24dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="Email Address"
+                android:textColor="@color/renteasy_brown"
+                android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Login"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#000000"
-        android:padding="12dp" />
+            <EditText
+                android:id="@+id/etLoginEmail"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/renteasy_input"
+                android:hint="Enter your email"
+                android:inputType="textEmailAddress"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="@color/renteasy_brown"
+                android:textColorHint="@color/renteasy_caramel" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#CCCCCC"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="Password"
+                android:textColor="@color/renteasy_brown"
+                android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Don't have an account?"
-        android:textAlignment="center"
-        android:layout_marginBottom="8dp" />
+            <EditText
+                android:id="@+id/etLoginPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="22dp"
+                android:background="@drawable/renteasy_input"
+                android:hint="Enter your password"
+                android:inputType="textPassword"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="@color/renteasy_brown"
+                android:textColorHint="@color/renteasy_caramel" />
 
-    <Button
-        android:id="@+id/btnGoToRegister"
-        style="?attr/materialButtonOutlinedStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Create Account"
-        android:textColor="#000000"
-        app:strokeColor="#000000" />
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:backgroundTint="@color/renteasy_brown"
+                android:padding="12dp"
+                android:text="Login"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="18dp"
+                android:background="@color/renteasy_tan" />
 
-    <TextView
-        android:id="@+id/tvForgotPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Forgot Password?"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Don't have an account?"
+                android:textAlignment="center"
+                android:textColor="@color/renteasy_caramel" />
 
-    <TextView
-        android:id="@+id/tvNeedHelp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Need Help?"
-        android:paddingTop="8dp"
-        android:paddingBottom="16dp" />
+            <Button
+                android:id="@+id/btnGoToRegister"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Create Account"
+                android:textAllCaps="false"
+                android:textColor="@color/renteasy_brown"
+                android:textStyle="bold"
+                app:strokeColor="@color/renteasy_brown" />
+        </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

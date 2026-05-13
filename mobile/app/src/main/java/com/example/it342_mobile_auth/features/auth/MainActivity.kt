@@ -51,7 +51,10 @@ class MainActivity : AppCompatActivity() {
                     if (response.isSuccessful && response.body() != null) {
                         val token = response.body()!!.string()
                         val prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)
-                        prefs.edit().putString("jwt_token", token).apply()
+                        prefs.edit()
+                            .putString("jwt_token", token)
+                            .putString("user_email", email)
+                            .apply()
 
                         startActivity(Intent(this@MainActivity, DashboardActivity::class.java))
                         finish()
