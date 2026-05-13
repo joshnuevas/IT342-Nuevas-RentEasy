@@ -200,6 +200,10 @@ export default function Checkout() {
 }
 
 async function readPaymentError(response) {
+  if (response.status === 401 || response.status === 403) {
+    return "Your login session is not valid for PayMongo checkout. Please log out, make sure the backend is running, then log in again.";
+  }
+
   try {
     const data = await response.json();
     return data.detail || data.message || data.error || "PayMongo checkout could not be started.";
