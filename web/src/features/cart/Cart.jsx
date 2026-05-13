@@ -1,159 +1,148 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { 
-  Search, Plus, List, ShoppingCart, User, 
-  Image as ImageIcon, Loader2, X 
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Minus, PackageOpen, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { deleteCartItem, getCart, updateCartQuantity } from "./cart.api";
+import { Page, EmptyState } from "../../shared/RentEasyLayout";
+import {
+  calculateCartTotal,
+  currentUserEmail,
+  formatCurrency,
+  getLocalCart,
+  removeLocalCartItem,
+  updateLocalCartQuantity,
+} from "../../shared/rentEasyData";
 
 export default function Cart() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const userEmail = localStorage.getItem("userEmail");
+  const email = currentUserEmail();
   const token = localStorage.getItem("token");
+  const subtotal = calculateCartTotal(items);
+  const serviceFee = items.length > 0 ? Math.round(subtotal * 0.05) : 0;
+  const total = subtotal + serviceFee;
 
   useEffect(() => {
-    const fetchCart = async () => {
+    let isMounted = true;
+    const loadCart = async () => {
       try {
-        const response = await getCart(userEmail, token);
-        const data = await response.json();
-        setItems(data);
-      } catch (err) {
-        console.error("Failed to fetch cart", err);
+        const response = await getCart(email, token);
+        const data = response.ok ? await response.json() : [];
+        const local = getLocalCart(email);
+        if (isMounted) setItems(Array.isArray(data) && data.length > 0 ? data : local);
+      } catch {
+        if (isMounted) setItems(getLocalCart(email));
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
-    if (userEmail && token) fetchCart();
-  }, [userEmail, token]);
+    loadCart();
+    return () => {
+      isMounted = false;
+    };
+  }, [email, token]);
 
-  const updateQty = async (id, newQty) => {
-    if (newQty < 1) return;
+  const updateQty = async (id, quantity) => {
+    if (quantity < 1) return;
     try {
-      await updateCartQuantity(id, newQty, token);
-      setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: newQty } : i));
-    } catch (err) {
-      console.error("Update failed", err);
+      await updateCartQuantity(id, quantity, token);
+    } catch {
+      updateLocalCartQuantity(id, quantity, email);
     }
+    setItems((prev) => prev.map((item) => (String(item.id) === String(id) ? { ...item, quantity } : item)));
   };
 
   const removeItem = async (id) => {
     try {
       await deleteCartItem(id, token);
-      setItems(prev => prev.filter(i => i.id !== id));
-    } catch (err) {
-      console.error("Delete failed", err);
+    } catch {
+      removeLocalCartItem(id, email);
     }
-  };
-
-  const calculateTotal = () => {
-    return items.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+    setItems((prev) => prev.filter((item) => String(item.id) !== String(id)));
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
-      {/* HEADER */}
-      <header className="h-16 bg-white border-b border-[#D0BCA0] flex items-center justify-between px-6 sticky top-0 z-10">
-        <div className="border-2 border-[#4A3428] px-4 py-1.5 font-bold cursor-pointer" onClick={() => navigate("/home")}>
-          RentEasy
+    <Page cartCount={items.reduce((sum, item) => sum + item.quantity, 0)}>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Shopping cart</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Review your rental cart</h1>
         </div>
-        <div className="flex-1 max-w-2xl mx-8 relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6A48]" />
-          <input type="text" placeholder="[Search]" className="w-full border-2 border-[#D0BCA0] py-1.5 pl-10 pr-4 text-sm bg-white outline-none focus:border-[#4A3428]" />
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="border-2 border-[#4A3428] p-1.5" onClick={() => navigate("/create-listing")}><Plus size={18} /></button>
-          <button className="border-2 border-[#4A3428] p-1.5" onClick={() => navigate("/my-listings")}><List size={18} /></button>
-          <button className="border-2 border-[#4A3428] p-1.5 bg-[#4A3428] text-white"><ShoppingCart size={18} /></button>
-          <button className="border-2 border-[#4A3428] p-1.5"><User size={18} /></button>
-          <button className="border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold" onClick={() => {localStorage.clear(); navigate("/login")}}>Logout</button>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto p-8">
         {isLoading ? (
-          <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>
+          <div className="min-h-64 rounded-lg bg-white" />
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="border-2 border-[#4A3428] bg-white p-12 flex flex-col items-center gap-6 shadow-sm w-full max-md text-center">
-              <div className="border-2 border-[#4A3428] px-8 py-3 font-bold text-2xl uppercase">[Cart Empty]</div>
-              <div className="border border-[#D0BCA0] px-4 py-1 text-sm text-[#8C6A48]">[No items in cart]</div>
-              <button 
-                onClick={() => navigate("/home")}
-                className="border-2 border-[#4A3428] px-8 py-3 font-bold hover:bg-[#4A3428] hover:text-white transition-colors"
-              >
-                [Browse Products]
-              </button>
-            </div>
-          </div>
+          <EmptyState
+            icon={PackageOpen}
+            title="Your cart is empty"
+            description="Browse the catalog and add rental items before checkout."
+            action={<Link to="/home" className="rounded-lg bg-[#2f513f] px-5 py-3 font-black text-white">Browse products</Link>}
+          />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
-              {items.map(item => (
-                <div key={item.id} className="bg-white border-2 border-[#4A3428] p-4 flex gap-6 shadow-sm">
-                  <div className="w-32 h-32 bg-[#F5F2F0] border border-[#D0BCA0] flex-shrink-0">
-                    {item.product.imageUrl ? (
-                      <img src={item.product.imageUrl} className="w-full h-full object-cover" alt="" />
-                    ) : (
-                      <div className="flex items-center justify-center h-full opacity-30"><ImageIcon /></div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold border-b border-[#D0BCA0] pb-1 mb-2 uppercase">{item.product.name}</h3>
-                    <p className="text-[#8C6A48] text-sm mb-4">${item.product.price}/day</p>
-                    <div className="flex items-center gap-3">
-                      <button className="border border-[#4A3428] px-2" onClick={() => updateQty(item.id, item.quantity - 1)}>-</button>
-                      <span className="font-bold text-lg">{item.quantity}</span>
-                      <button className="border border-[#4A3428] px-2" onClick={() => updateQty(item.id, item.quantity + 1)}>+</button>
+          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-4">
+              {items.map((item) => (
+                <article key={item.id} className="grid overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm sm:grid-cols-[160px_1fr_auto]">
+                  <img src={item.product.imageUrl} alt={item.product.name} className="h-44 w-full object-cover sm:h-full" />
+                  <div className="p-5">
+                    <p className="text-xs font-black uppercase tracking-wide text-[#2f513f]">{item.product.category}</p>
+                    <h2 className="mt-2 text-xl font-black text-stone-950">{item.product.name}</h2>
+                    <p className="mt-1 text-sm text-stone-500">{formatCurrency(item.product.price)} per day</p>
+                    <div className="mt-5 inline-flex items-center overflow-hidden rounded-full border border-stone-200 bg-stone-50">
+                      <button type="button" onClick={() => updateQty(item.id, item.quantity - 1)} className="grid h-9 w-10 place-items-center hover:bg-white">
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="min-w-10 text-center text-sm font-black">{item.quantity}</span>
+                      <button type="button" onClick={() => updateQty(item.id, item.quantity + 1)} className="grid h-9 w-10 place-items-center hover:bg-white">
+                        <Plus className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                  <button onClick={() => removeItem(item.id)} className="text-red-600 self-start p-1 hover:bg-red-50 transition-colors"><X size={20}/></button>
-                </div>
+                  <div className="flex items-center justify-between gap-4 border-t border-stone-200 bg-stone-50 p-5 sm:flex-col sm:items-end sm:border-l sm:border-t-0">
+                    <p className="text-lg font-black text-stone-950">{formatCurrency(item.product.price * item.quantity)}</p>
+                    <button type="button" onClick={() => removeItem(item.id)} className="rounded-full p-2 text-red-500 hover:bg-red-50" title="Remove item">
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </article>
               ))}
             </div>
 
-            <div className="bg-white border-2 border-[#4A3428] p-6 h-fit shadow-sm">
-              <h2 className="font-bold border-b-2 border-[#4A3428] pb-2 mb-4 uppercase">Order Summary</h2>
-              <div className="flex justify-between mb-2"><span>Subtotal:</span><span className="font-bold">${calculateTotal().toFixed(2)}</span></div>
-              <div className="flex justify-between mb-6"><span>Tax:</span><span className="font-bold">$0.00</span></div>
-              <div className="border-t-2 border-[#D0BCA0] pt-4 flex justify-between mb-8">
-                <span className="font-bold text-xl uppercase">Total:</span>
-                <span className="font-bold text-xl text-[#4A3428]">${calculateTotal().toFixed(2)}</span>
+            <aside className="h-fit rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+              <h2 className="flex items-center gap-2 text-lg font-black text-stone-950">
+                <ShoppingBag className="h-5 w-5 text-[#d5673f]" />
+                Order summary
+              </h2>
+              <div className="mt-6 space-y-3 text-sm">
+                <Row label="Subtotal" value={formatCurrency(subtotal)} />
+                <Row label="Service fee" value={formatCurrency(serviceFee)} />
+                <div className="border-t border-stone-200 pt-4">
+                  <Row label="Total" value={formatCurrency(total)} strong />
+                </div>
               </div>
-              <button className="w-full bg-[#4A3428] text-white py-4 font-bold uppercase tracking-wider hover:bg-[#3E2B22]">
-                [Proceed to Checkout]
+              <button
+                type="button"
+                onClick={() => navigate("/checkout", { state: { items } })}
+                className="mt-6 h-12 w-full rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232]"
+              >
+                Continue to checkout
               </button>
-            </div>
+              <Link to="/home" className="mt-3 flex h-12 items-center justify-center rounded-lg border border-stone-200 font-black text-stone-700 hover:border-[#2f513f] hover:text-[#2f513f]">
+                Continue shopping
+              </Link>
+            </aside>
           </div>
         )}
-      </main>
+      </section>
+    </Page>
+  );
+}
 
-      <footer className="mt-20 border-t-2 border-[#4A3428] bg-white p-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <div className="border border-[#4A3428] px-3 py-1 font-bold inline-block mb-4">About</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1 mb-2">[About Us]</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1">[How It Works]</div>
-          </div>
-          <div>
-            <div className="border border-[#4A3428] px-3 py-1 font-bold inline-block mb-4">Support</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1 mb-2">[Contact]</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1">[FAQ]</div>
-          </div>
-          <div>
-            <div className="border border-[#4A3428] px-3 py-1 font-bold inline-block mb-4">Legal</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1 mb-2">[Privacy]</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1">[Terms]</div>
-          </div>
-          <div>
-            <div className="border border-[#4A3428] px-3 py-1 font-bold inline-block mb-4">Social</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1 mb-2">[Facebook]</div>
-            <div className="text-sm text-[#8C6A48] border border-[#D0BCA0] p-1">[Twitter]</div>
-          </div>
-        </div>
-      </footer>
+function Row({ label, value, strong }) {
+  return (
+    <div className={`flex items-center justify-between ${strong ? "text-lg font-black text-stone-950" : "text-stone-600"}`}>
+      <span>{label}</span>
+      <span className="font-black text-stone-950">{value}</span>
     </div>
   );
 }

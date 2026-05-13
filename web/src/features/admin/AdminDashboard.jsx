@@ -1,205 +1,267 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { 
-  LogOut, LayoutDashboard, Box, Clock, 
-  ShoppingCart, Users, ArrowLeft, BarChart3, Check, X 
+import { createElement, useEffect, useState } from "react";
+import {
+  BarChart3,
+  Boxes,
+  Check,
+  Clock,
+  LayoutDashboard,
+  PackagePlus,
+  ShoppingCart,
+  Users,
+  X,
 } from "lucide-react";
-import { getPendingListings, reviewListing } from "./admin.api";
+import { getPendingListings as getPendingListingsApi, reviewListing } from "./admin.api";
+import { Page } from "../../shared/RentEasyLayout";
+import {
+  demoOrders,
+  formatCurrency,
+  getPendingListings,
+  getStoredListings,
+  getStoredOrders,
+  updateStoredListingStatus,
+} from "../../shared/rentEasyData";
 
-const DashboardOverview = () => (
-  <>
-    <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-10 bg-white shadow-md">
-      <h2 className="text-xl font-bold">[Dashboard Overview]</h2>
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-      {[
-        { label: "[Total Orders]", value: "247" },
-        { label: "[Revenue]", value: "$12,450" },
-        { label: "[Products]", value: "89" },
-        { label: "[Active Users]", value: "1,234" },
-      ].map(card => (
-        <div key={card.label} className="bg-white border-2 border-[#4A3428] p-6 shadow-sm flex flex-col items-center">
-          <div className="border-2 border-[#D0BCA0] px-3 py-1 text-sm text-[#8C6A48] font-medium mb-5 bg-[#FDFBF9]">
-            {card.label}
-          </div>
-          <div className="border-2 border-[#4A3428] p-4 font-bold text-4xl text-[#4A3428]">
-            {card.value}
-          </div>
-        </div>
-      ))}
-    </div>
-    <div className="bg-white border-2 border-[#4A3428] p-8">
-      <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-8 bg-[#FDFBF9]">
-        <h3 className="text-lg font-bold flex items-center gap-2"><BarChart3 size={20} /> [Revenue Chart]</h3>
-      </div>
-      <div className="h-96 border-2 border-dashed border-[#D0BCA0] bg-[#FDFBF9] flex flex-col items-center justify-center text-[#8C6A48]">
-        <BarChart3 size={48} className="opacity-40 mb-4" />
-        <div className="border-2 border-[#D0BCA0] px-6 py-2 bg-white font-medium text-sm">[Chart Visualization Area]</div>
-      </div>
-    </div>
-  </>
-);
-
-const PendingView = ({ items, onAction }) => (
-  <>
-    <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-10 bg-white shadow-md">
-      <h2 className="text-xl font-bold">[Pending Approval Queue]</h2>
-    </div>
-    <div className="space-y-6">
-      {items.length === 0 ? (
-        <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-20 text-center font-bold text-[#8C6A48]">
-          [No listings awaiting review]
-        </div>
-      ) : (
-        items.map(item => (
-          <div key={item.productId} className="bg-white border-2 border-[#4A3428] flex flex-col md:flex-row shadow-sm">
-            <div className="w-full md:w-48 h-48 bg-[#F5F2F0] border-r-2 border-[#4A3428] flex-shrink-0">
-              {/* FIXED: Added check for empty string to prevent src="" crash */}
-              {item.imageUrl && item.imageUrl.trim() !== "" ? (
-                <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center opacity-50 text-[#8C6A48] text-sm font-bold">
-                  [No Image]
-                </div>
-              )}
-            </div>
-            <div className="p-6 flex-1 flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold uppercase">{item.name}</h3>
-                <p className="text-sm text-[#8C6A48]">By: {item.owner?.firstName} {item.owner?.lastName}</p>
-              </div>
-              <div className="text-xl font-bold mt-4">${item.price}</div>
-            </div>
-            <div className="w-full md:w-64 p-6 border-l-2 border-[#4A3428] flex flex-col gap-3 bg-[#FDFBF9]">
-              <button 
-                onClick={() => onAction(item.productId, "APPROVED")}
-                className="w-full bg-[#4A3428] text-white font-bold py-2 border-2 border-[#4A3428] hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Check size={18} /> [Approve]
-              </button>
-              <button 
-                onClick={() => onAction(item.productId, "REJECTED")}
-                className="w-full bg-white text-red-600 font-bold py-2 border-2 border-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
-              >
-                <X size={18} /> [Reject]
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  </>
-);
+const tabs = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "products", label: "Products", icon: Boxes },
+  { id: "pending", label: "Pending Approval", icon: Clock },
+  { id: "orders", label: "Orders", icon: ShoppingCart },
+  { id: "users", label: "Users", icon: Users },
+];
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [pendingItems, setPendingItems] = useState([]);
-
+  const [remotePending, setRemotePending] = useState([]);
+  const [, setLocalVersion] = useState(0);
   const token = localStorage.getItem("token");
+  const pendingItems = getPendingListings(remotePending);
+  const listings = getStoredListings();
+  const orders = [...getStoredOrders(), ...demoOrders];
 
   useEffect(() => {
     let isMounted = true;
-
-    if (activeTab === "pending") {
-      const loadPendingItems = async () => {
-        try {
-          const response = await getPendingListings(token);
-          if (response.ok) {
-            const data = await response.json();
-            if (isMounted) {
-              setPendingItems(data);
-            }
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      };
-      
-      loadPendingItems();
-    }
-
+    const loadPending = async () => {
+      try {
+        const response = await getPendingListingsApi(token);
+        const data = response.ok ? await response.json() : [];
+        if (isMounted) setRemotePending(Array.isArray(data) ? data : []);
+      } catch {
+        if (isMounted) setRemotePending([]);
+      }
+    };
+    loadPending();
     return () => {
       isMounted = false;
     };
-  }, [activeTab, token]);
+  }, [token]);
 
-  const handleAction = async (id, status) => {
+  const handleReview = async (id, status) => {
     try {
-      const response = await reviewListing(id, status, token);
-      if (response.ok) {
-        setPendingItems(prev => prev.filter(item => item.productId !== id));
-      } else {
-        alert("Action failed. You may not have permission.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Connection error.");
+      await reviewListing(id, status, token);
+    } catch {
+      updateStoredListingStatus(id, status);
     }
+    updateStoredListingStatus(id, status);
+    setRemotePending((prev) => prev.filter((item) => String(item.productId) !== String(id)));
+    setLocalVersion((version) => version + 1);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userEmail");
-    navigate("/login");
-  };
-
-  const sideBarItems = [
-    { id: "dashboard", label: "[Dashboard]", icon: LayoutDashboard },
-    { id: "products", label: "[Products]", icon: Box },
-    { id: "pending", label: "[Pending Approval]", icon: Clock },
-    { id: "orders", label: "[Orders]", icon: ShoppingCart },
-    { id: "users", label: "[Users]", icon: Users },
-  ];
+  const approvedCount = listings.filter((item) => item.status === "APPROVED").length;
 
   return (
-    <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
-      <header className="h-16 bg-white border-b border-[#D0BCA0] flex items-center justify-between px-6 sticky top-0 z-10">
-        <div className="border-2 border-[#4A3428] px-4 py-1.5 font-bold cursor-pointer bg-[#FDFBF9]" onClick={() => navigate("/home")}>
-          RentEasy [ADMIN]
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleLogout} className="border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold hover:bg-[#4A3428] hover:text-white flex items-center gap-2">
-            <LogOut size={16} /> [Logout]
-          </button>
-        </div>
-      </header>
-
-      <div className="flex">
-        <aside className="w-64 bg-white border-r-2 border-[#D0BCA0] p-6 space-y-8 sticky top-16 h-[calc(100vh-4rem)]">
-          <div className="border-2 border-[#4A3428] p-4 text-center bg-[#FDFBF9]">
-            <h1 className="text-xl font-bold uppercase tracking-tight">Admin Panel</h1>
-          </div>
-          <nav className="space-y-2">
-            {sideBarItems.map(item => (
-              <button 
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full border-2 p-3 flex items-center gap-3 text-sm font-bold transition-all ${
-                  activeTab === item.id 
-                    ? "bg-[#4A3428] text-white border-[#4A3428] translate-x-1" 
-                    : "border-[#D0BCA0] hover:bg-[#F5F2F0]"
-                }`}
-              >
-                <item.icon size={18} /> {item.label}
-              </button>
-            ))}
-            <button onClick={() => navigate("/home")} className="w-full border-2 border-dashed border-[#D0BCA0] p-3 flex items-center gap-3 text-sm font-bold mt-10 text-[#8C6A48] hover:bg-[#FDFBF9]">
-              <ArrowLeft size={18} /> [Back to Site]
-            </button>
-          </nav>
-        </aside>
-
-        <main className="flex-1 p-8">
-          {activeTab === "dashboard" && <DashboardOverview />}
-          {activeTab === "pending" && <PendingView items={pendingItems} onAction={handleAction} />}
-          {activeTab !== "dashboard" && activeTab !== "pending" && (
-            <div className="border-2 border-dashed border-[#D0BCA0] p-20 text-center text-[#8C6A48]">
-              [Section {activeTab.toUpperCase()} coming soon]
+    <Page>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[270px_1fr]">
+          <aside className="h-fit rounded-lg border border-stone-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
+            <div className="mb-6 rounded-lg bg-[#2f513f] p-5 text-white">
+              <p className="text-sm font-bold text-emerald-100">RentEasy</p>
+              <h1 className="mt-1 text-2xl font-black">Admin Panel</h1>
             </div>
-          )}
-        </main>
+            <nav className="space-y-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-black transition ${
+                    activeTab === tab.id ? "bg-emerald-50 text-[#2f513f]" : "text-stone-600 hover:bg-stone-50 hover:text-stone-950"
+                  }`}
+                >
+                  {createElement(tab.icon, { className: "h-5 w-5" })}
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <div className="space-y-6">
+            {activeTab === "dashboard" && (
+              <DashboardView
+                totalProducts={listings.length + pendingItems.length}
+                pending={pendingItems.length}
+                orders={orders.length}
+                revenue={orders.reduce((sum, order) => sum + Number(order.total || 0), 0)}
+              />
+            )}
+            {activeTab === "products" && <ProductsView listings={listings} approvedCount={approvedCount} />}
+            {activeTab === "pending" && <PendingView items={pendingItems} onReview={handleReview} />}
+            {activeTab === "orders" && <OrdersView orders={orders} />}
+            {activeTab === "users" && <UsersView />}
+          </div>
+        </div>
+      </section>
+    </Page>
+  );
+}
+
+function DashboardView({ totalProducts, pending, orders, revenue }) {
+  return (
+    <>
+      <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200">
+        <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Admin home</p>
+        <h2 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Dashboard overview</h2>
       </div>
+      <div className="grid gap-4 md:grid-cols-4">
+        <AdminMetric label="Total orders" value={orders} />
+        <AdminMetric label="Revenue" value={formatCurrency(revenue)} />
+        <AdminMetric label="Products" value={totalProducts} />
+        <AdminMetric label="Pending" value={pending} />
+      </div>
+      <div className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-5 flex items-center gap-2 text-lg font-black text-stone-950">
+          <BarChart3 className="h-5 w-5 text-[#d5673f]" />
+          Revenue snapshot
+        </h3>
+        <div className="grid h-80 place-items-center rounded-lg bg-stone-50">
+          <div className="text-center">
+            <BarChart3 className="mx-auto mb-3 h-12 w-12 text-[#2f513f]" />
+            <p className="font-black text-stone-950">Sales dashboard placeholder</p>
+            <p className="mt-1 text-sm text-stone-500">Basic analytics are marked as could-have in the SDD.</p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ProductsView({ listings, approvedCount }) {
+  return (
+    <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-black text-stone-950">Product management</h2>
+          <p className="text-sm text-stone-500">{approvedCount} approved local listings</p>
+        </div>
+        <a href="/create-listing" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#2f513f] px-4 font-black text-white">
+          <PackagePlus className="h-5 w-5" />
+          Add product
+        </a>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[680px] text-left text-sm">
+          <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+            <tr>
+              <th className="px-4 py-3">Product</th>
+              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Price</th>
+              <th className="px-4 py-3">Stock</th>
+              <th className="px-4 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {listings.map((item) => (
+              <tr key={item.productId} className="border-t border-stone-100">
+                <td className="px-4 py-4 font-black text-stone-950">{item.name}</td>
+                <td className="px-4 py-4">{item.category}</td>
+                <td className="px-4 py-4">{formatCurrency(item.price)}</td>
+                <td className="px-4 py-4">{item.stock}</td>
+                <td className="px-4 py-4">
+                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black uppercase">{item.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function PendingView({ items, onReview }) {
+  return (
+    <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-black text-stone-950">Pending approval queue</h2>
+      <p className="mt-1 text-sm text-stone-500">Approve owner-submitted products before they appear in the customer catalog.</p>
+      <div className="mt-6 space-y-4">
+        {items.map((item) => (
+          <article key={item.productId} className="grid overflow-hidden rounded-lg border border-stone-200 md:grid-cols-[180px_1fr_auto]">
+            <img src={item.imageUrl} alt={item.name} className="h-44 w-full object-cover md:h-full" />
+            <div className="p-5">
+              <p className="text-xs font-black uppercase tracking-wide text-[#2f513f]">{item.category}</p>
+              <h3 className="mt-2 text-xl font-black text-stone-950">{item.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-stone-500">{item.description}</p>
+              <p className="mt-3 text-sm font-bold text-stone-600">Owner: {item.owner?.firstName} {item.owner?.lastName}</p>
+            </div>
+            <div className="flex min-w-48 flex-row gap-2 border-t border-stone-200 bg-stone-50 p-5 md:flex-col md:border-l md:border-t-0">
+              <button onClick={() => onReview(item.productId, "APPROVED")} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#2f513f] px-4 py-3 text-sm font-black text-white">
+                <Check className="h-4 w-4" /> Approve
+              </button>
+              <button onClick={() => onReview(item.productId, "REJECTED")} className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600">
+                <X className="h-4 w-4" /> Reject
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function OrdersView({ orders }) {
+  return (
+    <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-black text-stone-950">Order list</h2>
+      <div className="mt-5 grid gap-4">
+        {orders.map((order) => (
+          <article key={order.orderNumber} className="rounded-lg bg-stone-50 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-black text-stone-950">{order.orderNumber}</p>
+                <p className="text-sm text-stone-500">{order.items?.length || 0} item(s)</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="font-black text-stone-950">{formatCurrency(order.total)}</p>
+                <p className="text-sm font-bold text-[#2f513f]">{order.status}</p>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function UsersView() {
+  return (
+    <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-black text-stone-950">Users</h2>
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        {["student@example.com", "admin1@renteasy.com", "owner@example.com"].map((email, index) => (
+          <div key={email} className="rounded-lg bg-stone-50 p-4">
+            <p className="font-black text-stone-950">{email}</p>
+            <p className="text-sm text-stone-500">{index === 1 ? "Administrator" : "Customer"}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AdminMetric({ label, value }) {
+  return (
+    <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+      <p className="text-sm font-bold text-stone-500">{label}</p>
+      <p className="mt-2 text-3xl font-black text-stone-950">{value}</p>
     </div>
   );
 }

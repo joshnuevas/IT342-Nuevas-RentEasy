@@ -1,204 +1,98 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { 
-  LogOut, LayoutDashboard, Box, Clock, 
-  ShoppingCart, Users, ArrowLeft, BarChart3, Check, X 
-} from "lucide-react";
-import { getPendingProducts, updateProductStatus } from "./listings.api";
+import { Link } from "react-router-dom";
+import { createElement } from "react";
+import { CheckCircle2, Clock3, PackagePlus, Tag } from "lucide-react";
+import { Page, EmptyState } from "../../shared/RentEasyLayout";
+import { currentUserEmail, demoPendingListings, formatCurrency, getStoredListings } from "../../shared/rentEasyData";
 
-const DashboardOverview = () => (
-  <>
-    <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-10 bg-white shadow-md">
-      <h2 className="text-xl font-bold">[Dashboard Overview]</h2>
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-      {[
-        { label: "[Total Orders]", value: "247" },
-        { label: "[Revenue]", value: "$12,450" },
-        { label: "[Products]", value: "89" },
-        { label: "[Active Users]", value: "1,234" },
-      ].map(card => (
-        <div key={card.label} className="bg-white border-2 border-[#4A3428] p-6 shadow-sm flex flex-col items-center">
-          <div className="border-2 border-[#D0BCA0] px-3 py-1 text-sm text-[#8C6A48] font-medium mb-5 bg-[#FDFBF9]">
-            {card.label}
-          </div>
-          <div className="border-2 border-[#4A3428] p-4 font-bold text-4xl text-[#4A3428]">
-            {card.value}
-          </div>
-        </div>
-      ))}
-    </div>
-    <div className="bg-white border-2 border-[#4A3428] p-8">
-      <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-8 bg-[#FDFBF9]">
-        <h3 className="text-lg font-bold flex items-center gap-2"><BarChart3 size={20} /> [Revenue Chart]</h3>
-      </div>
-      <div className="h-96 border-2 border-dashed border-[#D0BCA0] bg-[#FDFBF9] flex flex-col items-center justify-center text-[#8C6A48]">
-        <BarChart3 size={48} className="opacity-40 mb-4" />
-        <div className="border-2 border-[#D0BCA0] px-6 py-2 bg-white font-medium text-sm">[Chart Visualization Area]</div>
-      </div>
-    </div>
-  </>
-);
-
-const PendingView = ({ items, onAction }) => (
-  <>
-    <div className="border-2 border-[#4A3428] px-4 py-2 inline-block mb-10 bg-white shadow-md">
-      <h2 className="text-xl font-bold">[Pending Approval Queue]</h2>
-    </div>
-    <div className="space-y-6">
-      {items.length === 0 ? (
-        <div className="border-2 border-dashed border-[#D0BCA0] bg-white p-20 text-center font-bold text-[#8C6A48]">
-          [No listings awaiting review]
-        </div>
-      ) : (
-        items.map(item => (
-          <div key={item.productId} className="bg-white border-2 border-[#4A3428] flex flex-col md:flex-row shadow-sm">
-            <div className="w-full md:w-48 h-48 bg-[#F5F2F0] border-r-2 border-[#4A3428] flex-shrink-0">
-              {item.imageUrl && item.imageUrl.trim() !== "" ? (
-                <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center opacity-50 text-[#8C6A48] text-sm font-bold">
-                  [No Image]
-                </div>
-              )}
-            </div>
-            <div className="p-6 flex-1 flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold uppercase">{item.name}</h3>
-                <p className="text-sm text-[#8C6A48]">By: {item.owner?.firstName} {item.owner?.lastName}</p>
-              </div>
-              <div className="text-xl font-bold mt-4">${item.price}</div>
-            </div>
-            <div className="w-full md:w-64 p-6 border-l-2 border-[#4A3428] flex flex-col gap-3 bg-[#FDFBF9]">
-              <button 
-                onClick={() => onAction(item.productId, "APPROVED")}
-                className="w-full bg-[#4A3428] text-white font-bold py-2 border-2 border-[#4A3428] hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Check size={18} /> [Approve]
-              </button>
-              <button 
-                onClick={() => onAction(item.productId, "REJECTED")}
-                className="w-full bg-white text-red-600 font-bold py-2 border-2 border-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
-              >
-                <X size={18} /> [Reject]
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  </>
-);
-
-export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [pendingItems, setPendingItems] = useState([]);
-
-  const token = localStorage.getItem("token");
-
-  useEffect(() => {
-    let isMounted = true;
-
-    if (activeTab === "pending") {
-      const loadPendingItems = async () => {
-        try {
-          const response = await getPendingProducts(token);
-          if (response.ok) {
-            const data = await response.json();
-            if (isMounted) {
-              setPendingItems(data);
-            }
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      };
-      
-      loadPendingItems();
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeTab, token]);
-
-  const handleAction = async (id, status) => {
-    try {
-      const response = await updateProductStatus(id, status, token);
-      if (response.ok) {
-        setPendingItems(prev => prev.filter(item => item.productId !== id));
-      } else {
-        alert("Action failed. You may not have permission.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Connection error.");
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userEmail");
-    navigate("/login");
-  };
-
-  const sideBarItems = [
-    { id: "dashboard", label: "[Dashboard]", icon: LayoutDashboard },
-    { id: "products", label: "[Products]", icon: Box },
-    { id: "pending", label: "[Pending Approval]", icon: Clock },
-    { id: "orders", label: "[Orders]", icon: ShoppingCart },
-    { id: "users", label: "[Users]", icon: Users },
+export default function MyListings() {
+  const email = currentUserEmail();
+  const listings = [
+    ...getStoredListings().filter((item) => item.owner?.email === email || item.ownerEmail === email),
+    ...demoPendingListings.filter((item) => item.owner?.email === "student@example.com"),
   ];
+  const approved = listings.filter((item) => item.status === "APPROVED").length;
+  const pending = listings.filter((item) => item.status !== "APPROVED").length;
 
   return (
-    <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
-      <header className="h-16 bg-white border-b border-[#D0BCA0] flex items-center justify-between px-6 sticky top-0 z-10">
-        <div className="border-2 border-[#4A3428] px-4 py-1.5 font-bold cursor-pointer bg-[#FDFBF9]" onClick={() => navigate("/home")}>
-          RentEasy [ADMIN]
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleLogout} className="border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold hover:bg-[#4A3428] hover:text-white flex items-center gap-2">
-            <LogOut size={16} /> [Logout]
-          </button>
-        </div>
-      </header>
-
-      <div className="flex">
-        <aside className="w-64 bg-white border-r-2 border-[#D0BCA0] p-6 space-y-8 sticky top-16 h-[calc(100vh-4rem)]">
-          <div className="border-2 border-[#4A3428] p-4 text-center bg-[#FDFBF9]">
-            <h1 className="text-xl font-bold uppercase tracking-tight">Admin Panel</h1>
+    <Page>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-7 flex flex-col gap-5 rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">My listings</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Manage your rental items</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
+              Your wireframe keeps listing status, performance, and add-product actions together; this page follows that layout.
+            </p>
           </div>
-          <nav className="space-y-2">
-            {sideBarItems.map(item => (
-              <button 
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full border-2 p-3 flex items-center gap-3 text-sm font-bold transition-all ${
-                  activeTab === item.id 
-                    ? "bg-[#4A3428] text-white border-[#4A3428] translate-x-1" 
-                    : "border-[#D0BCA0] hover:bg-[#F5F2F0]"
-                }`}
-              >
-                <item.icon size={18} /> {item.label}
-              </button>
-            ))}
-            <button onClick={() => navigate("/home")} className="w-full border-2 border-dashed border-[#D0BCA0] p-3 flex items-center gap-3 text-sm font-bold mt-10 text-[#8C6A48] hover:bg-[#FDFBF9]">
-              <ArrowLeft size={18} /> [Back to Site]
-            </button>
-          </nav>
-        </aside>
+          <Link
+            to="/create-listing"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#2f513f] px-5 font-black text-white transition hover:bg-[#244232]"
+          >
+            <PackagePlus className="h-5 w-5" />
+            Add new product
+          </Link>
+        </div>
 
-        <main className="flex-1 p-8">
-          {activeTab === "dashboard" && <DashboardOverview />}
-          {activeTab === "pending" && <PendingView items={pendingItems} onAction={handleAction} />}
-          {activeTab !== "dashboard" && activeTab !== "pending" && (
-            <div className="border-2 border-dashed border-[#D0BCA0] p-20 text-center text-[#8C6A48]">
-              [Section {activeTab.toUpperCase()} coming soon]
-            </div>
-          )}
-        </main>
-      </div>
+        <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <Metric label="Total listings" value={listings.length} icon={Tag} />
+          <Metric label="Approved" value={approved} icon={CheckCircle2} />
+          <Metric label="Pending review" value={pending} icon={Clock3} />
+        </div>
+
+        {listings.length === 0 ? (
+          <EmptyState
+            icon={PackagePlus}
+            title="No listings yet"
+            description="Create your first rental item so it can appear in your owner listing queue."
+            action={
+              <Link to="/create-listing" className="rounded-lg bg-[#2f513f] px-5 py-3 font-black text-white">
+                Create listing
+              </Link>
+            }
+          />
+        ) : (
+          <div className="grid gap-5">
+            {listings.map((item) => (
+              <article key={item.productId} className="grid overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm md:grid-cols-[220px_1fr_auto]">
+                <img src={item.imageUrl} alt={item.name} className="h-56 w-full object-cover md:h-full" />
+                <div className="p-5">
+                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-stone-500">
+                    {item.category}
+                  </span>
+                  <h2 className="mt-3 text-xl font-black text-stone-950">{item.name}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">{item.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-stone-600">
+                    <span>{formatCurrency(item.price)} / day</span>
+                    <span>{item.stock} in stock</span>
+                  </div>
+                </div>
+                <div className="flex min-w-48 flex-col justify-between border-t border-stone-200 bg-stone-50 p-5 md:border-l md:border-t-0">
+                  <span
+                    className={`rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-wide ${
+                      item.status === "APPROVED" ? "bg-emerald-100 text-[#2f513f]" : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    {item.status === "APPROVED" ? "Approved" : "Pending review"}
+                  </span>
+                  <button className="mt-6 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]">
+                    Edit details
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </Page>
+  );
+}
+
+function Metric({ label, value, icon: Icon }) {
+  return (
+    <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+      {createElement(Icon, { className: "mb-4 h-5 w-5 text-[#d5673f]" })}
+      <p className="text-sm font-bold text-stone-500">{label}</p>
+      <p className="mt-1 text-3xl font-black text-stone-950">{value}</p>
     </div>
   );
 }

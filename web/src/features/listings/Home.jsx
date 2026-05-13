@@ -1,205 +1,254 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { 
-  Search, Plus, List, ShoppingCart, User, 
-  Image as ImageIcon, Loader2, AlertCircle 
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, BadgeCheck, CalendarDays, Image as ImageIcon, Loader2, SlidersHorizontal, Star } from "lucide-react";
 import { addCartItem, getCart } from "../cart/cart.api";
 import { getApprovedProducts } from "./listings.api";
+import { Page } from "../../shared/RentEasyLayout";
+import {
+  addProductToLocalCart,
+  categories,
+  currentUserEmail,
+  formatCurrency,
+  getVisibleProducts,
+  normalizeProduct,
+} from "../../shared/rentEasyData";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
+  const [remoteProducts, setRemoteProducts] = useState([]);
   const [cartItemIds, setCartItemIds] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("featured");
+  const [notice, setNotice] = useState("");
 
-  const currentUserEmail = localStorage.getItem("userEmail");
+  const email = currentUserEmail();
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
-        const prodRes = await getApprovedProducts();
-        if (!prodRes.ok) throw new Error("Failed to load products.");
-        const prodData = await prodRes.json();
-        setProducts(prodData);
+        const response = await getApprovedProducts();
+        const data = response.ok ? await response.json() : [];
+        if (isMounted) setRemoteProducts(Array.isArray(data) ? data : data.data || []);
 
-        if (currentUserEmail && token) {
-          const cartRes = await getCart(currentUserEmail, token);
-          if (cartRes.ok) {
-            const cartData = await cartRes.json();
-            const ids = new Set(cartData.map(item => item.product.productId));
-            setCartItemIds(ids);
+        if (email && token) {
+          const cartResponse = await getCart(email, token);
+          if (cartResponse.ok) {
+            const cartData = await cartResponse.json();
+            if (isMounted) setCartItemIds(new Set(cartData.map((item) => item.product.productId)));
           }
         }
-      } catch (err) {
-        setError(err.message || "Cannot connect to server.");
+      } catch {
+        if (isMounted) setRemoteProducts([]);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
     fetchData();
-  }, [currentUserEmail, token]);
+    return () => {
+      isMounted = false;
+    };
+  }, [email, token]);
 
-  const addToCart = async (productId) => {
+  const products = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const filtered = getVisibleProducts(remoteProducts)
+      .filter((product) => category === "All" || product.category?.toLowerCase() === category.toLowerCase())
+      .filter((product) => {
+        if (!query) return true;
+        return [product.name, product.description, product.category].join(" ").toLowerCase().includes(query);
+      });
+
+    return filtered.sort((a, b) => {
+      if (sortBy === "price-low") return Number(a.price) - Number(b.price);
+      if (sortBy === "price-high") return Number(b.price) - Number(a.price);
+      return String(a.name).localeCompare(String(b.name));
+    });
+  }, [category, remoteProducts, search, sortBy]);
+
+  const addToCart = async (product) => {
+    const normalized = normalizeProduct(product);
     try {
-      const response = await addCartItem(productId, currentUserEmail, token);
-
-      if (response.ok) {
-        setCartItemIds(prev => new Set(prev).add(productId));
-        navigate("/cart");
-      } else {
-        const errorMsg = await response.text();
-        alert(errorMsg || "Failed to add to cart.");
-      }
-    } catch (err) {
-      console.error("Cart error:", err);
-      alert("Server connection failed.");
+      const response = await addCartItem(normalized.productId, email, token);
+      if (!response.ok) throw new Error("Cart API failed");
+    } catch {
+      addProductToLocalCart(normalized, email);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    setCartItemIds((prev) => new Set(prev).add(normalized.productId));
+    setNotice(`${normalized.name} added to cart.`);
+    setTimeout(() => setNotice(""), 2400);
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
-      <header className="h-16 bg-white border-b border-[#D0BCA0] flex items-center justify-between px-6 sticky top-0 z-10">
-        <div 
-          className="border-2 border-[#4A3428] px-4 py-1.5 font-bold tracking-wide bg-[#FDFBF9] cursor-pointer" 
-          onClick={() => navigate("/home")}
-        >
-          RentEasy
+    <Page searchValue={search} onSearchChange={setSearch}>
+      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
+        <div className="rounded-lg bg-[#2f513f] p-6 text-white shadow-xl shadow-emerald-900/10 sm:p-8">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-100">Rental catalog</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
+            Browse high-value gear without owning it forever.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-emerald-50">
+            Cameras, tools, audio gear, outdoor kits, and event equipment are organized exactly around the SDD shopping journey.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link
+              to="/create-listing"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-[#2f513f] shadow-sm transition hover:bg-emerald-50"
+            >
+              List an item <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/cart"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10"
+            >
+              View cart
+            </Link>
+          </div>
         </div>
 
-        <div className="flex-1 max-w-2xl mx-8 relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6A48]" />
-          <input 
-            type="text" 
-            placeholder="[Search]" 
-            className="w-full border-2 border-[#D0BCA0] py-1.5 pl-10 pr-4 text-sm bg-white focus:outline-none focus:border-[#4A3428]"
-          />
+        <aside className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-lg bg-[#f5e7df] text-[#d5673f]">
+              <CalendarDays className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-stone-500">Ready for rental</p>
+              <p className="text-2xl font-black text-stone-950">{products.length} items</p>
+            </div>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+            <Stat label="Avg. response" value="< 2s" />
+            <Stat label="Support" value="Local" />
+          </div>
+        </aside>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col gap-4 rounded-lg border border-stone-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((item) => (
+              <button
+                type="button"
+                key={item}
+                onClick={() => setCategory(item)}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                  category === item ? "bg-[#2f513f] text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center gap-2 text-sm font-bold text-stone-600">
+            <SlidersHorizontal className="h-4 w-4" />
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              className="rounded-full border border-stone-200 bg-white px-4 py-2 outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+            >
+              <option value="featured">Featured</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+            </select>
+          </label>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate("/create-listing")}
-            className="hidden sm:flex border-2 border-[#4A3428] px-3 py-1.5 items-center gap-2 text-sm font-medium hover:bg-[#F5F2F0]"
-          >
-            <Plus size={16} /> [List Item]
-          </button>
-          
-          <button 
-            onClick={() => navigate("/my-listings")}
-            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0]"
-            title="My Listings"
-          >
-            <List size={18} />
-          </button>
-          
-          <button 
-            onClick={() => navigate("/cart")} 
-            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0] relative"
-          >
-            <ShoppingCart size={18} />
-          </button>
-          
-          <button 
-            onClick={() => navigate("/profile")}
-            className="border-2 border-[#4A3428] p-1.5 hover:bg-[#F5F2F0]"
-          >
-            <User size={18} />
-          </button>
-
-          <button onClick={handleLogout} className="border-2 border-[#4A3428] px-3 py-1.5 text-sm font-bold hover:bg-[#4A3428] hover:text-white">
-            [Logout]
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto p-8">
-        <div className="border-2 border-[#4A3428] p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 bg-white shadow-sm">
-          <h1 className="border-2 border-[#4A3428] px-6 py-2 text-xl font-bold bg-[#FDFBF9]">Product Listing</h1>
-          <span className="border-2 border-[#D0BCA0] px-4 py-2 text-sm text-[#8C6A48] font-medium">[Browse rental products]</span>
-        </div>
+        {notice && (
+          <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-[#2f513f]">
+            {notice}
+          </div>
+        )}
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-[#8C6A48]">
-            <Loader2 className="w-10 h-10 animate-spin mb-4" />
-            <p className="font-bold border-2 border-[#D0BCA0] px-4 py-2 bg-white text-sm">Loading database...</p>
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-20 text-red-700">
-            <AlertCircle className="w-10 h-10 mb-3" />
-            <p className="font-bold border-2 border-red-500 p-4 bg-white text-sm">{error}</p>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-[#D0BCA0] bg-white">
-            <p className="text-[#8C6A48] font-bold">[No approved listings yet]</p>
+          <div className="grid min-h-64 place-items-center rounded-lg bg-white">
+            <Loader2 className="h-9 w-9 animate-spin text-[#2f513f]" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
-              <ProductCard 
-                key={product.productId} 
-                product={product} 
-                currentUserEmail={currentUserEmail} 
+              <ProductCard
+                key={product.productId}
+                product={product}
                 isInCart={cartItemIds.has(product.productId)}
-                addToCart={addToCart} 
+                onAdd={() => addToCart(product)}
+                onView={() => navigate(`/products/${product.productId}`, { state: { product } })}
               />
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </section>
+    </Page>
   );
 }
 
-function ProductCard({ product, currentUserEmail, isInCart, addToCart }) {
-  const isOwner = product.owner?.email === currentUserEmail;
-
-  let buttonText = "[Add to Cart]";
-  let isDisabled = false;
-
-  if (isOwner) {
-    buttonText = "[Your Listing]";
-    isDisabled = true;
-  } else if (isInCart) {
-    buttonText = "[In Cart]";
-    isDisabled = true;
-  }
-
+function ProductCard({ product, isInCart, onAdd, onView }) {
   return (
-    <div className="bg-white border-2 border-[#4A3428] flex flex-col group hover:shadow-lg transition-shadow">
-      <div className="h-64 bg-[#F5F2F0] border-b-2 border-[#4A3428] flex items-center justify-center overflow-hidden">
+    <article className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-stone-200">
+      <button type="button" onClick={onView} className="group relative block h-60 w-full overflow-hidden bg-stone-100 text-left">
         {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
         ) : (
-          <ImageIcon size={40} className="text-[#8C6A48] opacity-40" />
+          <div className="grid h-full place-items-center text-stone-400">
+            <ImageIcon className="h-12 w-12" />
+          </div>
         )}
-      </div>
-      <div className="p-4 flex flex-col gap-3">
-        <div className="border-2 border-[#4A3428] px-3 py-2 font-bold text-sm bg-[#FDFBF9] truncate uppercase">
-          {product.name}
+        <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-black text-[#2f513f] shadow-sm">
+          {product.category}
+        </span>
+      </button>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-black text-stone-950">{product.name}</h2>
+            <p className="mt-1 line-clamp-2 text-sm leading-6 text-stone-500">{product.description}</p>
+          </div>
+          <div className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-black text-amber-700">
+            <Star className="h-3 w-3 fill-amber-500" />
+            4.8
+          </div>
         </div>
-        <div className="border-2 border-[#D0BCA0] px-3 py-2 text-[#8C6A48] text-sm font-medium">
-          ${Number(product.price).toFixed(2)} / day
+        <div className="mt-5 flex items-end justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-stone-400">Per day</p>
+            <p className="text-2xl font-black text-stone-950">{formatCurrency(product.price)}</p>
+          </div>
+          <p className="flex items-center gap-1 text-sm font-bold text-[#2f513f]">
+            <BadgeCheck className="h-4 w-4" />
+            {product.stock} available
+          </p>
         </div>
-        
-        <button 
-          disabled={isDisabled}
-          onClick={() => addToCart(product.productId)}
-          className={`w-full py-2.5 border-2 font-bold transition-colors uppercase text-sm ${
-            isDisabled 
-              ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed" 
-              : "border-[#4A3428] text-[#4A3428] hover:bg-[#4A3428] hover:text-white"
-          }`}
-        >
-          {buttonText}
-        </button>
+        <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={isInCart}
+            className={`rounded-lg px-4 py-3 text-sm font-black transition ${
+              isInCart ? "bg-stone-100 text-stone-400" : "bg-[#2f513f] text-white hover:bg-[#244232]"
+            }`}
+          >
+            {isInCart ? "In cart" : "Add to cart"}
+          </button>
+          <button
+            type="button"
+            onClick={onView}
+            className="rounded-lg border border-stone-200 px-4 py-3 text-sm font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]"
+          >
+            Details
+          </button>
+        </div>
       </div>
+    </article>
+  );
+}
+
+function Stat({ label, value }) {
+  return (
+    <div className="rounded-lg bg-stone-50 p-4">
+      <p className="text-xs font-bold uppercase tracking-wide text-stone-400">{label}</p>
+      <p className="mt-1 text-lg font-black text-stone-950">{value}</p>
     </div>
   );
 }
