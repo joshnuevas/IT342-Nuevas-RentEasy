@@ -20,16 +20,21 @@ export default function Login() {
       const data = await response.text();
 
       if (response.ok) {
-        localStorage.setItem("token", data || "demo-token");
+        if (!data) {
+          setError("Login succeeded but no backend token was returned. Please check the backend auth response.");
+          return;
+        }
+
+        localStorage.setItem("token", data);
         localStorage.setItem("userEmail", email);
         navigate(email.endsWith("@renteasy.com") ? "/admin-dashboard" : "/home");
       } else {
+        localStorage.removeItem("token");
         setError(data || "Invalid email or password.");
       }
     } catch {
-      localStorage.setItem("token", "demo-token");
-      localStorage.setItem("userEmail", email || "student@example.com");
-      navigate(email.endsWith("@renteasy.com") ? "/admin-dashboard" : "/home");
+      localStorage.removeItem("token");
+      setError("Cannot reach the backend. Start Spring Boot first, then log in again.");
     } finally {
       setIsLoading(false);
     }

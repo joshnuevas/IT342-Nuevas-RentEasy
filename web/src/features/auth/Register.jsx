@@ -45,9 +45,8 @@ export default function Register() {
         setStatus({ type: "error", message: data || "Registration failed." });
       }
     } catch {
-      localStorage.setItem("token", "demo-token");
-      localStorage.setItem("userEmail", formData.email || "student@example.com");
-      navigate("/home");
+      localStorage.removeItem("token");
+      setStatus({ type: "error", message: "Cannot reach the backend. Start Spring Boot first, then create the account again." });
     } finally {
       setIsLoading(false);
     }
