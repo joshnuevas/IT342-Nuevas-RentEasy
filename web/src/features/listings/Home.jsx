@@ -59,11 +59,13 @@ export default function Home() {
 
   const products = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return getVisibleProducts(remoteProducts).filter((product) => {
-      if (!query) return true;
-      return [product.name, product.description, product.category].join(" ").toLowerCase().includes(query);
-    });
-  }, [remoteProducts, search]);
+    return getVisibleProducts(remoteProducts)
+      .filter((product) => ownerEmail(product) !== email.toLowerCase())
+      .filter((product) => {
+        if (!query) return true;
+        return [product.name, product.description, product.category].join(" ").toLowerCase().includes(query);
+      });
+  }, [email, remoteProducts, search]);
 
   const addToCart = async (product) => {
     const normalized = normalizeProduct(product);
@@ -115,7 +117,6 @@ export default function Home() {
               <ProductCard
                 key={product.productId}
                 product={product}
-                currentUserEmail={email}
                 isInCart={cartItemIds.has(product.productId)}
                 addToCart={addToCart}
                 onView={() => navigate(`/products/${product.productId}`, { state: { product } })}
@@ -128,10 +129,8 @@ export default function Home() {
   );
 }
 
-function ProductCard({ product, currentUserEmail, isInCart, addToCart, onView }) {
-  const isOwner = product.owner?.email === currentUserEmail;
-  const disabled = isOwner || isInCart;
-  const buttonText = isOwner ? "Your Listing" : isInCart ? "In Cart" : "Add to Cart";
+function ProductCard({ product, isInCart, addToCart, onView }) {
+  const buttonText = isInCart ? "In Cart" : "Add to Cart";
 
   return (
     <article className="rent-card-motion flex flex-col overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm">
@@ -152,10 +151,10 @@ function ProductCard({ product, currentUserEmail, isInCart, addToCart, onView })
         <p className="mt-auto text-base font-black text-[#4A3428]">{formatCurrency(product.price)} / day</p>
         <button
           type="button"
-          disabled={disabled}
+          disabled={isInCart}
           onClick={() => addToCart(product)}
           className={`mt-2 h-11 rounded-lg text-sm font-black uppercase tracking-wide transition-colors ${
-            disabled
+            isInCart
               ? "cursor-not-allowed bg-gray-100 text-gray-400"
               : "bg-[#4A3428] text-white hover:bg-[#3E2B22]"
           }`}
@@ -165,4 +164,8 @@ function ProductCard({ product, currentUserEmail, isInCart, addToCart, onView })
       </div>
     </article>
   );
+}
+
+function ownerEmail(product) {
+  return String(product.owner?.email || product.ownerEmail || product.userEmail || product.email || "").toLowerCase();
 }
