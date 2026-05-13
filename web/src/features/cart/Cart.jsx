@@ -64,9 +64,9 @@ export default function Cart() {
   return (
     <Page cartCount={items.reduce((sum, item) => sum + item.quantity, 0)}>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Shopping cart</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Review your rental cart</h1>
+        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0]">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">Shopping cart</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Review your rental cart</h1>
         </div>
 
         {isLoading ? (
@@ -76,19 +76,19 @@ export default function Cart() {
             icon={PackageOpen}
             title="Your cart is empty"
             description="Browse the catalog and add rental items before checkout."
-            action={<Link to="/home" className="rounded-lg bg-[#2f513f] px-5 py-3 font-black text-white">Browse products</Link>}
+            action={<Link to="/home" className="rounded-lg bg-[#4A3428] px-5 py-3 font-black text-white">Browse products</Link>}
           />
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
             <div className="space-y-4">
               {items.map((item) => (
-                <article key={item.id} className="grid overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm sm:grid-cols-[160px_1fr_auto]">
+                <article key={item.id} className="grid overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm sm:grid-cols-[160px_1fr_auto]">
                   <img src={item.product.imageUrl} alt={item.product.name} className="h-44 w-full object-cover sm:h-full" />
                   <div className="p-5">
-                    <p className="text-xs font-black uppercase tracking-wide text-[#2f513f]">{item.product.category}</p>
-                    <h2 className="mt-2 text-xl font-black text-stone-950">{item.product.name}</h2>
-                    <p className="mt-1 text-sm text-stone-500">{formatCurrency(item.product.price)} per day</p>
-                    <div className="mt-5 inline-flex items-center overflow-hidden rounded-full border border-stone-200 bg-stone-50">
+                    <p className="text-xs font-black uppercase tracking-wide text-[#4A3428]">{item.product.category}</p>
+                    <h2 className="mt-2 text-xl font-black text-[#4A3428]">{item.product.name}</h2>
+                    <p className="mt-1 text-sm text-[#8C6A48]">{formatCurrency(item.product.price)} per day</p>
+                    <div className="mt-5 inline-flex items-center overflow-hidden rounded-full border border-[#D0BCA0] bg-[#FDFBF9]">
                       <button type="button" onClick={() => updateQty(item.id, item.quantity - 1)} className="grid h-9 w-10 place-items-center hover:bg-white">
                         <Minus className="h-4 w-4" />
                       </button>
@@ -98,8 +98,8 @@ export default function Cart() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between gap-4 border-t border-stone-200 bg-stone-50 p-5 sm:flex-col sm:items-end sm:border-l sm:border-t-0">
-                    <p className="text-lg font-black text-stone-950">{formatCurrency(item.product.price * item.quantity)}</p>
+                  <div className="flex items-center justify-between gap-4 border-t border-[#D0BCA0] bg-[#FDFBF9] p-5 sm:flex-col sm:items-end sm:border-l sm:border-t-0">
+                    <p className="text-lg font-black text-[#4A3428]">{formatCurrency(item.product.price * item.quantity)}</p>
                     <button type="button" onClick={() => removeItem(item.id)} className="rounded-full p-2 text-red-500 hover:bg-red-50" title="Remove item">
                       <Trash2 className="h-5 w-5" />
                     </button>
@@ -108,26 +108,26 @@ export default function Cart() {
               ))}
             </div>
 
-            <aside className="h-fit rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-black text-stone-950">
-                <ShoppingBag className="h-5 w-5 text-[#d5673f]" />
+            <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+              <h2 className="flex items-center gap-2 text-lg font-black text-[#4A3428]">
+                <ShoppingBag className="h-5 w-5 text-[#8C6A48]" />
                 Order summary
               </h2>
               <div className="mt-6 space-y-3 text-sm">
                 <Row label="Subtotal" value={formatCurrency(subtotal)} />
                 <Row label="Service fee" value={formatCurrency(serviceFee)} />
-                <div className="border-t border-stone-200 pt-4">
+                <div className="border-t border-[#D0BCA0] pt-4">
                   <Row label="Total" value={formatCurrency(total)} strong />
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => navigate("/checkout", { state: { items } })}
-                className="mt-6 h-12 w-full rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232]"
+                className="mt-6 h-12 w-full rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22]"
               >
                 Continue to checkout
               </button>
-              <Link to="/home" className="mt-3 flex h-12 items-center justify-center rounded-lg border border-stone-200 font-black text-stone-700 hover:border-[#2f513f] hover:text-[#2f513f]">
+              <Link to="/home" className="mt-3 flex h-12 items-center justify-center rounded-lg border border-[#D0BCA0] font-black text-[#4A3428] hover:border-[#4A3428] hover:text-[#4A3428]">
                 Continue shopping
               </Link>
             </aside>
@@ -140,9 +140,9 @@ export default function Cart() {
 
 function Row({ label, value, strong }) {
   return (
-    <div className={`flex items-center justify-between ${strong ? "text-lg font-black text-stone-950" : "text-stone-600"}`}>
+    <div className={`flex items-center justify-between ${strong ? "text-lg font-black text-[#4A3428]" : "text-[#8C6A48]"}`}>
       <span>{label}</span>
-      <span className="font-black text-stone-950">{value}</span>
+      <span className="font-black text-[#4A3428]">{value}</span>
     </div>
   );
 }

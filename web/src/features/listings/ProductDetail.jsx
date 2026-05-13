@@ -37,25 +37,25 @@ export default function ProductDetail() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-stone-600 shadow-sm ring-1 ring-stone-200 hover:text-[#2f513f]"
+          className="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#8C6A48] shadow-sm ring-1 ring-[#D0BCA0] hover:text-[#4A3428]"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
-        {notice && <div className="mb-5 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-bold text-[#2f513f]">{notice}</div>}
+        {notice && <div className="mb-5 rounded-lg bg-[#FDFBF9] px-4 py-3 text-sm font-bold text-[#4A3428]">{notice}</div>}
 
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
+          <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-[#D0BCA0]">
             <img src={product.imageUrl} alt={product.name} className="h-[520px] w-full object-cover" />
           </div>
 
-          <div className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-            <p className="mb-3 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-[#2f513f]">
+          <div className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm sm:p-8">
+            <p className="mb-3 inline-flex rounded-full bg-[#FDFBF9] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#4A3428]">
               {product.category}
             </p>
-            <h1 className="text-4xl font-black tracking-tight text-stone-950">{product.name}</h1>
-            <p className="mt-4 text-base leading-7 text-stone-600">{product.description}</p>
+            <h1 className="text-4xl font-black tracking-tight text-[#4A3428]">{product.name}</h1>
+            <p className="mt-4 text-base leading-7 text-[#8C6A48]">{product.description}</p>
 
             <div className="mt-7 grid gap-3 sm:grid-cols-3">
               <DetailStat icon={CalendarDays} label="Rental" value="Daily" />
@@ -63,32 +63,32 @@ export default function ProductDetail() {
               <DetailStat icon={ShieldCheck} label="Status" value="Verified" />
             </div>
 
-            <div className="mt-8 rounded-lg bg-stone-50 p-5">
-              <p className="text-sm font-bold uppercase tracking-wide text-stone-400">Rental price</p>
-              <p className="mt-1 text-4xl font-black text-stone-950">{formatCurrency(product.price)}</p>
-              <p className="text-sm font-semibold text-stone-500">per day, excluding delivery coordination</p>
+            <div className="mt-8 rounded-lg bg-[#FDFBF9] p-5">
+              <p className="text-sm font-bold uppercase tracking-wide text-[#8C6A48]">Rental price</p>
+              <p className="mt-1 text-4xl font-black text-[#4A3428]">{formatCurrency(product.price)}</p>
+              <p className="text-sm font-semibold text-[#8C6A48]">per day, excluding delivery coordination</p>
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_auto]">
               <button
                 type="button"
                 onClick={handleAdd}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#2f513f] px-6 font-black text-white transition hover:bg-[#244232]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#4A3428] px-6 font-black text-white transition hover:bg-[#3E2B22]"
               >
                 <ShoppingCart className="h-5 w-5" />
                 Add to cart
               </button>
               <Link
                 to="/cart"
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-stone-200 px-6 font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]"
+                className="inline-flex h-12 items-center justify-center rounded-lg border border-[#D0BCA0] px-6 font-black text-[#4A3428] transition hover:border-[#4A3428] hover:text-[#4A3428]"
               >
                 Go to cart
               </Link>
             </div>
 
-            <div className="mt-8 border-t border-stone-200 pt-6">
-              <p className="flex items-center gap-2 text-sm font-bold text-stone-600">
-                <BadgeCheck className="h-4 w-4 text-[#2f513f]" />
+            <div className="mt-8 border-t border-[#D0BCA0] pt-6">
+              <p className="flex items-center gap-2 text-sm font-bold text-[#8C6A48]">
+                <BadgeCheck className="h-4 w-4 text-[#4A3428]" />
                 Listed by {product.owner?.firstName || "RentEasy"} {product.owner?.lastName || "Partner"}
               </p>
             </div>
@@ -101,10 +101,10 @@ export default function ProductDetail() {
 
 function DetailStat({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-lg border border-stone-200 p-4">
-      {createElement(Icon, { className: "mb-3 h-5 w-5 text-[#d5673f]" })}
-      <p className="text-xs font-bold uppercase tracking-wide text-stone-400">{label}</p>
-      <p className="mt-1 font-black text-stone-950">{value}</p>
+    <div className="rounded-lg border border-[#D0BCA0] p-4">
+      {createElement(Icon, { className: "mb-3 h-5 w-5 text-[#8C6A48]" })}
+      <p className="text-xs font-bold uppercase tracking-wide text-[#8C6A48]">{label}</p>
+      <p className="mt-1 font-black text-[#4A3428]">{value}</p>
     </div>
   );
 }

@@ -98,9 +98,9 @@ export default function Checkout() {
   return (
     <Page>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Payment process</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Checkout and delivery details</h1>
+        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0]">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">Payment process</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Checkout and delivery details</h1>
         </div>
 
         {paymentStatus === "cancelled" && (
@@ -118,9 +118,9 @@ export default function Checkout() {
         )}
 
         <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-stone-950">
-              <MapPin className="h-5 w-5 text-[#d5673f]" />
+          <section className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-[#4A3428]">
+              <MapPin className="h-5 w-5 text-[#8C6A48]" />
               Shipping information
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -129,33 +129,33 @@ export default function Checkout() {
               <Input label="Phone" name="phone" value={shipping.phone} onChange={handleChange} placeholder="09XX XXX XXXX" />
               <Input label="City" name="city" value={shipping.city} onChange={handleChange} />
               <label className="sm:col-span-2">
-                <span className="mb-2 block text-sm font-bold text-stone-700">Complete address</span>
+                <span className="mb-2 block text-sm font-bold text-[#4A3428]">Complete address</span>
                 <input
                   name="address"
                   value={shipping.address}
                   onChange={handleChange}
                   required
                   placeholder="House number, street, barangay"
-                  className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 px-4 outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
                 />
               </label>
               <Input label="ZIP code" name="zip" value={shipping.zip} onChange={handleChange} />
             </div>
 
-            <div className="mt-7 rounded-lg bg-stone-50 p-5">
-              <h3 className="mb-3 flex items-center gap-2 font-black text-stone-950">
-                <ShieldCheck className="h-5 w-5 text-[#d5673f]" />
+            <div className="mt-7 rounded-lg bg-[#FDFBF9] p-5">
+              <h3 className="mb-3 flex items-center gap-2 font-black text-[#4A3428]">
+                <ShieldCheck className="h-5 w-5 text-[#8C6A48]" />
                 PayMongo hosted checkout
               </h3>
-              <p className="text-sm leading-6 text-stone-600">
+              <p className="text-sm leading-6 text-[#8C6A48]">
                 You will be redirected to PayMongo to complete payment using the enabled methods on your PayMongo account, such as card or GCash.
               </p>
             </div>
           </section>
 
-          <aside className="h-fit rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-stone-950">
-              <PackageCheck className="h-5 w-5 text-[#d5673f]" />
+          <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-[#4A3428]">
+              <PackageCheck className="h-5 w-5 text-[#8C6A48]" />
               Order summary
             </h2>
             <div className="space-y-4">
@@ -163,14 +163,14 @@ export default function Checkout() {
                 <div key={item.id} className="flex gap-3">
                   <img src={item.product.imageUrl} alt={item.product.name} className="h-16 w-16 rounded-lg object-cover" />
                   <div className="flex-1">
-                    <p className="text-sm font-black text-stone-950">{item.product.name}</p>
-                    <p className="text-xs text-stone-500">Qty {item.quantity}</p>
+                    <p className="text-sm font-black text-[#4A3428]">{item.product.name}</p>
+                    <p className="text-xs text-[#8C6A48]">Qty {item.quantity}</p>
                   </div>
                   <p className="text-sm font-black">{formatCurrency(item.product.price * item.quantity)}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-6 space-y-3 border-t border-stone-200 pt-5 text-sm">
+            <div className="mt-6 space-y-3 border-t border-[#D0BCA0] pt-5 text-sm">
               <Row label="Subtotal" value={formatCurrency(subtotal)} />
               <Row label="Service fee" value={formatCurrency(serviceFee)} />
               <Row label="Total" value={formatCurrency(total)} strong />
@@ -178,7 +178,7 @@ export default function Checkout() {
             <button
               type="submit"
               disabled={!isReady || items.length === 0 || isPaying}
-              className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232] disabled:bg-stone-300"
+              className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22] disabled:bg-[#D0BCA0]"
             >
               {isPaying ? (
                 <>
@@ -215,11 +215,11 @@ async function readPaymentError(response) {
 function Input({ label, ...props }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-bold text-stone-700">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
       <input
         {...props}
         required
-        className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 px-4 outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
       />
     </label>
   );
@@ -227,9 +227,9 @@ function Input({ label, ...props }) {
 
 function Row({ label, value, strong }) {
   return (
-    <div className={`flex justify-between ${strong ? "text-lg font-black text-stone-950" : "text-stone-600"}`}>
+    <div className={`flex justify-between ${strong ? "text-lg font-black text-[#4A3428]" : "text-[#8C6A48]"}`}>
       <span>{label}</span>
-      <span className="font-black text-stone-950">{value}</span>
+      <span className="font-black text-[#4A3428]">{value}</span>
     </div>
   );
 }

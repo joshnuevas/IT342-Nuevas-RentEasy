@@ -101,17 +101,17 @@ export default function MyListings() {
   return (
     <Page>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 flex flex-col gap-5 rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200 md:flex-row md:items-center md:justify-between">
+        <div className="mb-7 flex flex-col gap-5 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0] md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">My listings</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Manage your rental items</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">My listings</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Manage your rental items</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8C6A48]">
               Your wireframe keeps listing status, performance, and add-product actions together; this page follows that layout.
             </p>
           </div>
           <Link
             to="/create-listing"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#2f513f] px-5 font-black text-white transition hover:bg-[#244232]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#4A3428] px-5 font-black text-white transition hover:bg-[#3E2B22]"
           >
             <PackagePlus className="h-5 w-5" />
             Add new product
@@ -125,7 +125,7 @@ export default function MyListings() {
         </div>
 
         {notice && (
-          <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-black text-[#2f513f]">
+          <div className="mb-5 rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 py-3 text-sm font-black text-[#4A3428]">
             {notice}
           </div>
         )}
@@ -138,8 +138,8 @@ export default function MyListings() {
         )}
 
         {isLoading ? (
-          <div className="flex min-h-64 items-center justify-center rounded-lg border border-stone-200 bg-white text-sm font-black text-stone-500">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin text-[#d5673f]" />
+          <div className="flex min-h-64 items-center justify-center rounded-lg border border-[#D0BCA0] bg-white text-sm font-black text-[#8C6A48]">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin text-[#8C6A48]" />
             Loading your database listings...
           </div>
         ) : listings.length === 0 ? (
@@ -148,7 +148,7 @@ export default function MyListings() {
             title="No listings yet"
             description="Create your first rental item so it can appear in your owner listing queue."
             action={
-              <Link to="/create-listing" className="rounded-lg bg-[#2f513f] px-5 py-3 font-black text-white">
+              <Link to="/create-listing" className="rounded-lg bg-[#4A3428] px-5 py-3 font-black text-white">
                 Create listing
               </Link>
             }
@@ -156,20 +156,20 @@ export default function MyListings() {
         ) : (
           <div className="grid gap-5">
             {listings.map((item) => (
-              <article key={item.productId} className="grid overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm md:grid-cols-[220px_1fr_auto]">
+              <article key={item.productId} className="grid overflow-hidden rounded-lg border border-[#D0BCA0] bg-white shadow-sm md:grid-cols-[220px_1fr_auto]">
                 <img src={item.imageUrl} alt={item.name} className="h-56 w-full object-cover md:h-full" />
                 <div className="p-5">
-                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-stone-500">
+                  <span className="rounded-full bg-[#F5F2F0] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#8C6A48]">
                     {item.category}
                   </span>
-                  <h2 className="mt-3 text-xl font-black text-stone-950">{item.name}</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">{item.description}</p>
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-stone-600">
+                  <h2 className="mt-3 text-xl font-black text-[#4A3428]">{item.name}</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8C6A48]">{item.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-[#8C6A48]">
                     <span>{formatCurrency(item.price)} / day</span>
                     <span>{item.stock} in stock</span>
                   </div>
                 </div>
-                <div className="flex min-w-48 flex-col justify-between border-t border-stone-200 bg-stone-50 p-5 md:border-l md:border-t-0">
+                <div className="flex min-w-48 flex-col justify-between border-t border-[#D0BCA0] bg-[#FDFBF9] p-5 md:border-l md:border-t-0">
                   <span
                     className={`rounded-full px-3 py-2 text-center text-xs font-black uppercase tracking-wide ${
                       statusClassName(item.status)
@@ -181,7 +181,7 @@ export default function MyListings() {
                     <Link
                       to={`/products/${item.productId}`}
                       state={{ product: item }}
-                      className="rounded-lg border border-stone-200 bg-white px-4 py-3 text-center text-sm font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]"
+                      className="rounded-lg border border-[#D0BCA0] bg-white px-4 py-3 text-center text-sm font-black text-[#4A3428] transition hover:border-[#4A3428] hover:text-[#4A3428]"
                     >
                       View details
                     </Link>
@@ -231,17 +231,17 @@ function statusLabel(status) {
 }
 
 function statusClassName(status) {
-  if (status === "APPROVED") return "bg-emerald-100 text-[#2f513f]";
+  if (status === "APPROVED") return "bg-[#F5F2F0] text-[#4A3428]";
   if (status === "REJECTED") return "bg-red-100 text-red-700";
   return "bg-amber-100 text-amber-800";
 }
 
 function Metric({ label, value, icon: Icon }) {
   return (
-    <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
-      {createElement(Icon, { className: "mb-4 h-5 w-5 text-[#d5673f]" })}
-      <p className="text-sm font-bold text-stone-500">{label}</p>
-      <p className="mt-1 text-3xl font-black text-stone-950">{value}</p>
+    <div className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
+      {createElement(Icon, { className: "mb-4 h-5 w-5 text-[#8C6A48]" })}
+      <p className="text-sm font-bold text-[#8C6A48]">{label}</p>
+      <p className="mt-1 text-3xl font-black text-[#4A3428]">{value}</p>
     </div>
   );
 }

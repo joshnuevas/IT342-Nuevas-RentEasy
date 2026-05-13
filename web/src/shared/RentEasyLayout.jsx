@@ -31,26 +31,26 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/92 backdrop-blur-xl">
+    <header className="rent-header-motion sticky top-0 z-40 border-b border-[#D0BCA0] bg-[#FDFBF9]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link to="/home" className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#2f513f] text-lg font-black text-white shadow-sm">
+          <span className="rent-logo-pulse grid h-10 w-10 place-items-center rounded-lg bg-[#4A3428] text-lg font-black text-white shadow-sm">
             R
           </span>
           <span className="hidden leading-tight sm:block">
-            <span className="block text-base font-black tracking-tight text-stone-950">RentEasy</span>
-            <span className="block text-xs font-medium text-stone-500">Borrow smarter</span>
+            <span className="block text-base font-black tracking-tight text-[#4A3428]">RentEasy</span>
+            <span className="block text-xs font-medium text-[#8C6A48]">Borrow smarter</span>
           </span>
         </Link>
 
         <div className="relative hidden flex-1 md:block">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C6A48]" />
           <input
             type="search"
             value={searchValue}
             onChange={(event) => onSearchChange?.(event.target.value)}
             placeholder="Search cameras, tools, speakers..."
-            className="h-11 w-full rounded-full border border-stone-200 bg-stone-50 pl-11 pr-4 text-sm outline-none transition focus:border-[#2f513f] focus:bg-white focus:ring-4 focus:ring-emerald-100"
+            className="h-11 w-full rounded-full border border-[#D0BCA0] bg-[#FDFBF9] pl-11 pr-4 text-sm outline-none transition focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/45"
           />
         </div>
 
@@ -61,7 +61,7 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
               to={item.to}
               className={({ isActive }) =>
                 `flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
-                  isActive ? "bg-emerald-50 text-[#2f513f]" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+                  isActive ? "bg-[#FDFBF9] text-[#4A3428]" : "text-[#8C6A48] hover:bg-[#F5F2F0] hover:text-[#4A3428]"
                 }`
               }
             >
@@ -74,7 +74,7 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
               to="/admin-dashboard"
               className={({ isActive }) =>
                 `flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
-                  isActive ? "bg-emerald-50 text-[#2f513f]" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"
+                  isActive ? "bg-[#FDFBF9] text-[#4A3428]" : "text-[#8C6A48] hover:bg-[#F5F2F0] hover:text-[#4A3428]"
                 }`
               }
             >
@@ -88,12 +88,12 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
           <button
             type="button"
             onClick={() => navigate("/cart")}
-            className="relative grid h-10 w-10 place-items-center rounded-full border border-stone-200 bg-white text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]"
+            className="relative grid h-10 w-10 place-items-center rounded-full border border-[#D0BCA0] bg-white text-[#4A3428] transition hover:border-[#4A3428] hover:text-[#4A3428]"
             title="Shopping cart"
           >
             <ShoppingCart className="h-5 w-5" />
             {count > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#d5673f] px-1 text-xs font-bold text-white">
+              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#8C6A48] px-1 text-xs font-bold text-white">
                 {count}
               </span>
             )}
@@ -101,30 +101,30 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
           <button
             type="button"
             onClick={() => navigate("/profile")}
-            className="hidden h-10 items-center gap-2 rounded-full border border-stone-200 bg-white px-2 pr-3 text-sm font-semibold text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f] sm:flex"
+            className="hidden h-10 items-center gap-2 rounded-full border border-[#D0BCA0] bg-white px-2 pr-3 text-sm font-semibold text-[#4A3428] transition hover:border-[#4A3428] hover:text-[#4A3428] sm:flex"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-stone-900 text-xs text-white">{userInitials(email)}</span>
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[#4A3428] text-xs text-white">{userInitials(email)}</span>
             Profile
           </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="grid h-10 w-10 place-items-center rounded-full border border-stone-200 bg-white text-stone-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            className="grid h-10 w-10 place-items-center rounded-full border border-[#D0BCA0] bg-white text-[#8C6A48] transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
             title="Logout"
           >
             <LogOut className="h-5 w-5" />
           </button>
         </div>
       </div>
-      <div className="border-t border-stone-100 px-4 py-3 md:hidden">
+      <div className="border-t border-[#D0BCA0] px-4 py-3 md:hidden">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C6A48]" />
           <input
             type="search"
             value={searchValue}
             onChange={(event) => onSearchChange?.(event.target.value)}
             placeholder="Search rentals"
-            className="h-10 w-full rounded-full border border-stone-200 bg-stone-50 pl-11 pr-4 text-sm outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+            className="h-10 w-full rounded-full border border-[#D0BCA0] bg-[#FDFBF9] pl-11 pr-4 text-sm outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
           />
         </div>
       </div>
@@ -134,8 +134,8 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
 
 export function Footer() {
   return (
-    <footer className="border-t border-stone-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 text-sm text-stone-600 sm:px-6 md:grid-cols-4 lg:px-8">
+    <footer className="border-t border-[#D0BCA0] bg-white">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 text-sm text-[#8C6A48] sm:px-6 md:grid-cols-4 lg:px-8">
         {[
           ["About", "How it works", "Rental safety"],
           ["Support", "Help center", "Contact"],
@@ -143,7 +143,7 @@ export function Footer() {
           ["Social", "Facebook", "Instagram"],
         ].map(([title, ...links]) => (
           <div key={title}>
-            <h3 className="mb-3 text-sm font-black uppercase tracking-wide text-stone-900">{title}</h3>
+            <h3 className="mb-3 text-sm font-black uppercase tracking-wide text-[#4A3428]">{title}</h3>
             <div className="space-y-2">
               {links.map((link) => (
                 <p key={link}>{link}</p>
@@ -158,9 +158,9 @@ export function Footer() {
 
 export function Page({ children, searchValue, onSearchChange, cartCount }) {
   return (
-    <div className="min-h-screen bg-[#f6f2ec] text-stone-900">
+    <div className="min-h-screen bg-[#F5F2F0] text-[#4A3428]">
       <SiteHeader searchValue={searchValue} onSearchChange={onSearchChange} cartCount={cartCount} />
-      <main>{children}</main>
+      <main className="rent-page-motion">{children}</main>
       <Footer />
     </div>
   );
@@ -168,12 +168,12 @@ export function Page({ children, searchValue, onSearchChange, cartCount }) {
 
 export function EmptyState({ icon: Icon = UserRound, title, description, action }) {
   return (
-    <div className="rounded-lg border border-dashed border-stone-300 bg-white p-10 text-center shadow-sm">
-      <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-[#2f513f]">
+    <div className="rent-card-motion rounded-lg border border-dashed border-[#D0BCA0] bg-white p-10 text-center shadow-sm">
+      <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-[#FDFBF9] text-[#4A3428]">
         {createElement(Icon, { className: "h-7 w-7" })}
       </div>
-      <h2 className="text-lg font-black text-stone-950">{title}</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-500">{description}</p>
+      <h2 className="text-lg font-black text-[#4A3428]">{title}</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8C6A48]">{description}</p>
       {action && <div className="mt-6">{action}</div>}
     </div>
   );

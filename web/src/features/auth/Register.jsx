@@ -53,13 +53,13 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f2ec] px-4 py-8">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[440px_1fr]">
-        <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/70 sm:p-8">
+    <div className="min-h-screen bg-[#F5F2F0] px-4 py-8">
+      <div className="rent-auth-motion mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[440px_1fr]">
+        <section className="rent-card-motion rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-xl shadow-[#D0BCA0]/60 sm:p-8">
           <div className="mb-8">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Start renting</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Create your account</h1>
-            <p className="mt-2 text-sm leading-6 text-stone-500">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">Start renting</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Create your account</h1>
+            <p className="mt-2 text-sm leading-6 text-[#8C6A48]">
               Sign up to list gear, add rentals to cart, and manage checkout details.
             </p>
           </div>
@@ -68,7 +68,7 @@ export default function Register() {
             <div
               className={`mb-5 rounded-lg border px-4 py-3 text-sm font-semibold ${
                 status.type === "success"
-                  ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                  ? "border-[#D0BCA0] bg-[#FDFBF9] text-[#4A3428]"
                   : "border-red-100 bg-red-50 text-red-700"
               }`}
             >
@@ -95,30 +95,30 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232] disabled:opacity-70"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22] disabled:opacity-70"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Create Account <CheckCircle2 className="h-4 w-4" /></>}
             </button>
           </form>
 
-          <p className="mt-7 text-center text-sm text-stone-500">
+          <p className="mt-7 text-center text-sm text-[#8C6A48]">
             Already have an account?{" "}
-            <Link to="/login" className="font-black text-[#2f513f] hover:underline">
+            <Link to="/login" className="font-black text-[#4A3428] hover:underline">
               Login
             </Link>
           </p>
         </section>
 
-        <section className="hidden overflow-hidden rounded-lg bg-stone-950 text-white shadow-2xl lg:block">
+        <section className="rent-card-motion hidden overflow-hidden rounded-lg bg-[#4A3428] text-white shadow-2xl lg:block">
           <div className="relative min-h-[640px]">
             <img
               src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
               alt="Creator workspace with rental equipment"
               className="absolute inset-0 h-full w-full object-cover opacity-55"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-stone-950 via-stone-950/65 to-[#2f513f]/70" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#4A3428] via-[#4A3428]/70 to-[#8C6A48]/70" />
             <div className="relative flex h-full min-h-[640px] flex-col justify-end p-10">
-              <p className="mb-4 inline-flex w-fit rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 ring-1 ring-white/20">
+              <p className="mb-4 inline-flex w-fit rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-[#FDFBF9] ring-1 ring-white/20">
                 Built around the SDD rental journey
               </p>
               <h2 className="max-w-xl text-5xl font-black leading-tight tracking-tight">
@@ -135,13 +135,13 @@ export default function Register() {
 function Input({ label, icon: Icon, ...props }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-stone-700">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
       <span className="relative block">
-        {createElement(Icon, { className: "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" })}
+        {createElement(Icon, { className: "absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C6A48]" })}
         <input
           {...props}
           required
-          className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 pl-11 pr-4 outline-none transition focus:border-[#2f513f] focus:bg-white focus:ring-4 focus:ring-emerald-100"
+          className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] pl-11 pr-4 outline-none transition focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/45"
         />
       </span>
     </label>

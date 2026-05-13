@@ -41,28 +41,28 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f2ec] px-4 py-8">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]">
-        <section className="hidden overflow-hidden rounded-lg bg-stone-950 text-white shadow-2xl lg:block">
+    <div className="min-h-screen bg-[#F5F2F0] px-4 py-8">
+      <div className="rent-auth-motion mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]">
+        <section className="rent-card-motion hidden overflow-hidden rounded-lg bg-[#4A3428] text-white shadow-2xl lg:block">
           <div className="relative min-h-[640px]">
             <img
               src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
               alt="Rental gear displayed on a table"
               className="absolute inset-0 h-full w-full object-cover opacity-55"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-stone-950 via-stone-950/70 to-emerald-950/60" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#4A3428] via-[#4A3428]/75 to-[#8C6A48]/65" />
             <div className="relative flex h-full min-h-[640px] flex-col justify-between p-10">
               <div className="flex items-center gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-lg bg-white text-xl font-black text-[#2f513f]">
+                <span className="grid h-12 w-12 place-items-center rounded-lg bg-white text-xl font-black text-[#4A3428]">
                   R
                 </span>
                 <div>
                   <p className="text-xl font-black">RentEasy</p>
-                  <p className="text-sm text-stone-300">Borrow what you need, when you need it.</p>
+                  <p className="text-sm text-[#F5F2F0]">Borrow what you need, when you need it.</p>
                 </div>
               </div>
               <div>
-                <p className="mb-4 inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-100 ring-1 ring-white/20">
+                <p className="mb-4 inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-[#FDFBF9] ring-1 ring-white/20">
                   Equipment rental marketplace
                 </p>
                 <h1 className="max-w-xl text-5xl font-black leading-tight tracking-tight">
@@ -71,7 +71,7 @@ export default function Login() {
                 <div className="mt-8 grid grid-cols-3 gap-3 text-sm">
                   {["Catalog", "Cart", "Checkout"].map((item) => (
                     <div key={item} className="rounded-lg bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
-                      <ShieldCheck className="mb-3 h-5 w-5 text-emerald-200" />
+                      <ShieldCheck className="mb-3 h-5 w-5 text-[#FDFBF9]" />
                       <p className="font-bold">{item}</p>
                     </div>
                   ))}
@@ -81,14 +81,14 @@ export default function Login() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/70 sm:p-8">
+        <section className="rent-card-motion rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-xl shadow-[#D0BCA0]/60 sm:p-8">
           <div className="mb-8">
-            <div className="mb-5 grid h-12 w-12 place-items-center rounded-lg bg-[#2f513f] text-lg font-black text-white lg:hidden">
+            <div className="rent-logo-pulse mb-5 grid h-12 w-12 place-items-center rounded-lg bg-[#4A3428] text-lg font-black text-white lg:hidden">
               R
             </div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">Welcome back</p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Login to RentEasy</h2>
-            <p className="mt-2 text-sm leading-6 text-stone-500">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">Welcome back</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Login to RentEasy</h2>
+            <p className="mt-2 text-sm leading-6 text-[#8C6A48]">
               Continue browsing rentals, managing your cart, and tracking your listings.
             </p>
           </div>
@@ -101,31 +101,31 @@ export default function Login() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <label className="block">
-              <span className="mb-2 block text-sm font-bold text-stone-700">Email address</span>
+              <span className="mb-2 block text-sm font-bold text-[#4A3428]">Email address</span>
               <span className="relative block">
-                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C6A48]" />
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
                   placeholder="you@example.com"
-                  className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 pl-11 pr-4 outline-none transition focus:border-[#2f513f] focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] pl-11 pr-4 outline-none transition focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/45"
                 />
               </span>
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-bold text-stone-700">Password</span>
+              <span className="mb-2 block text-sm font-bold text-[#4A3428]">Password</span>
               <span className="relative block">
-                <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C6A48]" />
                 <input
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   placeholder="Enter your password"
-                  className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 pl-11 pr-4 outline-none transition focus:border-[#2f513f] focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] pl-11 pr-4 outline-none transition focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/45"
                 />
               </span>
             </label>
@@ -133,15 +133,15 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232] disabled:opacity-70"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22] disabled:opacity-70"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Login <ArrowRight className="h-4 w-4" /></>}
             </button>
           </form>
 
-          <p className="mt-7 text-center text-sm text-stone-500">
+          <p className="mt-7 text-center text-sm text-[#8C6A48]">
             New to RentEasy?{" "}
-            <Link to="/register" className="font-black text-[#2f513f] hover:underline">
+            <Link to="/register" className="font-black text-[#4A3428] hover:underline">
               Create an account
             </Link>
           </p>

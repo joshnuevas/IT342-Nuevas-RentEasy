@@ -63,16 +63,16 @@ export default function CreateListing() {
   return (
     <Page>
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-stone-200">
+        <div className="mb-7 rounded-lg bg-white p-6 shadow-sm ring-1 ring-[#D0BCA0]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#d5673f]">List item</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-stone-950">Create a rental listing</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#8C6A48]">List item</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-[#4A3428]">Create a rental listing</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8C6A48]">
                 This follows the SDD list-item and create-listing wireframes: media first, then item details, pricing, and availability.
               </p>
             </div>
-            <div className="grid h-14 w-14 place-items-center rounded-lg bg-emerald-50 text-[#2f513f]">
+            <div className="grid h-14 w-14 place-items-center rounded-lg bg-[#FDFBF9] text-[#4A3428]">
               <PackagePlus className="h-7 w-7" />
             </div>
           </div>
@@ -86,46 +86,46 @@ export default function CreateListing() {
         )}
 
         <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-stone-950">
-              <ImagePlus className="h-5 w-5 text-[#d5673f]" />
+          <section className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-[#4A3428]">
+              <ImagePlus className="h-5 w-5 text-[#8C6A48]" />
               Product image
             </h2>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="group grid min-h-[420px] w-full place-items-center overflow-hidden rounded-lg border border-dashed border-stone-300 bg-stone-50 text-center transition hover:border-[#2f513f] hover:bg-emerald-50/40"
+              className="group grid min-h-[420px] w-full place-items-center overflow-hidden rounded-lg border border-dashed border-[#D0BCA0] bg-[#FDFBF9] text-center transition hover:border-[#4A3428] hover:bg-[#FDFBF9]/40"
             >
               {formData.imageUrl ? (
                 <img src={formData.imageUrl} alt="Preview" className="h-full min-h-[420px] w-full object-cover" />
               ) : (
                 <span className="p-8">
-                  <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-white text-[#2f513f] shadow-sm">
+                  <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-white text-[#4A3428] shadow-sm">
                     <Upload className="h-7 w-7" />
                   </span>
-                  <span className="block text-lg font-black text-stone-950">Upload product image</span>
-                  <span className="mt-2 block text-sm text-stone-500">JPG or PNG works best for marketplace cards.</span>
+                  <span className="block text-lg font-black text-[#4A3428]">Upload product image</span>
+                  <span className="mt-2 block text-sm text-[#8C6A48]">JPG or PNG works best for marketplace cards.</span>
                 </span>
               )}
             </button>
           </section>
 
-          <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-stone-950">
-              <Sparkles className="h-5 w-5 text-[#d5673f]" />
+          <section className="rounded-lg border border-[#D0BCA0] bg-white p-5 shadow-sm">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-black text-[#4A3428]">
+              <Sparkles className="h-5 w-5 text-[#8C6A48]" />
               Rental details
             </h2>
             <div className="grid gap-4">
               <Input label="Product name" name="name" value={formData.name} onChange={handleChange} placeholder="Professional Camera Kit" />
               <label>
-                <span className="mb-2 block text-sm font-bold text-stone-700">Category</span>
+                <span className="mb-2 block text-sm font-bold text-[#4A3428]">Category</span>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   required
-                  className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 px-4 outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
                 >
                   <option value="" disabled>Select a category</option>
                   {categories.filter((item) => item !== "All").map((item) => (
@@ -142,7 +142,7 @@ export default function CreateListing() {
                 <Input label="Pickup area" name="pickupArea" value={formData.pickupArea} onChange={handleChange} placeholder="Cebu City" />
               </div>
               <label>
-                <span className="mb-2 block text-sm font-bold text-stone-700">Description</span>
+                <span className="mb-2 block text-sm font-bold text-[#4A3428]">Description</span>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -150,7 +150,7 @@ export default function CreateListing() {
                   required
                   rows={7}
                   placeholder="Include condition, accessories, pickup notes, and rental rules."
-                  className="w-full resize-y rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+                  className="w-full resize-y rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 py-3 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
                 />
               </label>
             </div>
@@ -159,7 +159,7 @@ export default function CreateListing() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#2f513f] font-black text-white transition hover:bg-[#244232] disabled:opacity-70"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#4A3428] font-black text-white transition hover:bg-[#3E2B22] disabled:opacity-70"
               >
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Submit Listing <CheckCircle2 className="h-5 w-5" /></>}
               </button>
@@ -169,7 +169,7 @@ export default function CreateListing() {
                   setError("");
                   navigate("/home");
                 }}
-                className="h-12 rounded-lg border border-stone-200 font-black text-stone-700 transition hover:border-[#2f513f] hover:text-[#2f513f]"
+                className="h-12 rounded-lg border border-[#D0BCA0] font-black text-[#4A3428] transition hover:border-[#4A3428] hover:text-[#4A3428]"
               >
                 Cancel
               </button>
@@ -184,11 +184,11 @@ export default function CreateListing() {
 function Input({ label, ...props }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-bold text-stone-700">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-[#4A3428]">{label}</span>
       <input
         {...props}
         required
-        className="h-12 w-full rounded-lg border border-stone-200 bg-stone-50 px-4 outline-none focus:border-[#2f513f] focus:ring-4 focus:ring-emerald-100"
+        className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 outline-none focus:border-[#4A3428] focus:ring-4 focus:ring-[#D0BCA0]/45"
       />
     </label>
   );
