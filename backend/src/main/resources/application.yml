@@ -21,5 +21,12 @@ spring:
       ddl-auto: update
     show-sql: true
 
+app:
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:5173}
+
+paymongo:
+  secret-key: ${PAYMONGO_SECRET_KEY:}
+  payment-methods: ${PAYMONGO_PAYMENT_METHODS:card,gcash}
+
 server:
-  port: 8080
+  port: ${PORT:8080}

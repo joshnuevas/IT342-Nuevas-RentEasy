@@ -1,0 +1,58 @@
+package edu.cit.nuevas.renteasy.auth;
+
+import java.util.Optional;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import edu.cit.nuevas.renteasy.core.security.JwtUtil;
+import edu.cit.nuevas.renteasy.users.User;
+import edu.cit.nuevas.renteasy.users.UserRepository;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepo;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    public UserService(UserRepository userRepo,
+                       BCryptPasswordEncoder passwordEncoder,
+                       JwtUtil jwtUtil) {
+        this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
+
+    public String register(RegisterRequest request) {
+
+        if (userRepo.findByEmail(request.email).isPresent()) {
+            return "Email already exists";
+        }
+
+        User user = new User();
+        user.setFirstName(request.firstName);
+        user.setLastName(request.lastName);
+        user.setEmail(request.email);
+        user.setPassword(passwordEncoder.encode(request.password));
+
+        userRepo.save(user);
+
+        return "User registered successfully";
+    }
+
+    public String login(LoginRequest request) {
+
+        Optional<User> existing = userRepo.findByEmail(request.email);
+
+        if (existing.isEmpty()) {
+            return null;
+        }
+
+        if (passwordEncoder.matches(request.password, existing.get().getPassword())) {
+            return jwtUtil.generateToken(existing.get().getEmail());
+        }
+
+        return null;
+    }
+}

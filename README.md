@@ -1,5 +1,17 @@
 # RentEasy
 
+## Vertical Slice Architecture
+
+This branch refactors RentEasy from a horizontal/layered structure into vertical feature slices.
+
+Current feature organization:
+
+* Backend: `auth`, `users`, `listings`, `cart`, `admin`, and `core`
+* Web: `features/auth`, `features/listings`, `features/cart`, `features/admin`, `shared`, and `app`
+* Mobile: `features/auth`, `features/dashboard`, and `core/network`
+
+Each feature slice keeps related UI/API/controller/service/model/repository code close to the feature it supports, while cross-cutting configuration, security, routing, and network helpers live in shared/core folders.
+
 ## 📌 Project Description
 
 RentEasy is a full-stack web application designed to simplify equipment rental management through a secure and user-friendly platform. Users can register, log in, and access protected features within the system.
@@ -34,6 +46,10 @@ RentEasy demonstrates secure authentication, protected routing, and seamless fro
 
 * Supabase (PostgreSQL)
 
+### Payments
+
+* PayMongo Checkout API
+
 ### 🔹 Tools & IDEs
 
 * VS Code
@@ -49,19 +65,35 @@ RentEasy demonstrates secure authentication, protected routing, and seamless fro
    cd backend
    ```
 
-2. Build the project:
+2. Set your backend environment variables:
+
+   ```powershell
+   $env:DATABASE_URL="your_supabase_database_url"
+   $env:DB_USERNAME="your_database_username"
+   $env:DB_PASSWORD="your_database_password"
+   $env:PAYMONGO_SECRET_KEY="your_paymongo_test_secret_key"
+   $env:APP_FRONTEND_URL="http://localhost:5173"
+   ```
+
+   Optional:
+
+   ```powershell
+   $env:PAYMONGO_PAYMENT_METHODS="card,gcash"
+   ```
+
+3. Build the project:
 
    ```bash
    mvn clean install
    ```
 
-3. Run the Spring Boot application:
+4. Run the Spring Boot application:
 
    ```bash
    mvn spring-boot:run
    ```
 
-4. Backend will run on:
+5. Backend will run on:
 
    ```
    http://localhost:8080
@@ -74,7 +106,7 @@ RentEasy demonstrates secure authentication, protected routing, and seamless fro
 1. Navigate to frontend folder:
 
    ```bash
-   cd frontend
+   cd web
    ```
 
 2. Install dependencies:
