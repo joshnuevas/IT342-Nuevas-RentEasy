@@ -7,7 +7,7 @@ public class PaymentCheckoutItem {
     private String name;
     private String description;
     private BigDecimal price;
-    private Integer quantity;
+    private Integer days;
     private String imageUrl;
 
     public Long getProductId() {
@@ -42,12 +42,16 @@ public class PaymentCheckoutItem {
         this.price = price;
     }
 
-    public Integer getQuantity() {
-        return quantity;
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 
     public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
+        this.days = quantity;
     }
 
     public String getImageUrl() {

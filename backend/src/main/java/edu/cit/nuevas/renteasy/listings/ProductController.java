@@ -60,7 +60,7 @@ public class ProductController {
         if (!productRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        productRepository.deleteById(id);
+        productService.deleteProduct(id);
         return ResponseEntity.ok(Map.of("success", true));
     }
 }

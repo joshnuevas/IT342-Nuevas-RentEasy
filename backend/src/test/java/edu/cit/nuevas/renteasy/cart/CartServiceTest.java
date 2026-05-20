@@ -16,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import edu.cit.nuevas.renteasy.listings.Product;
 import edu.cit.nuevas.renteasy.listings.ProductRepository;
+import edu.cit.nuevas.renteasy.users.User;
+import edu.cit.nuevas.renteasy.users.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class CartServiceTest {
@@ -26,15 +28,21 @@ class CartServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private CartService cartService;
 
     @Test
     void addItemToCartCreatesNewCartItemWhenProductIsNotYetInCart() {
         Product product = new Product();
+        User user = new User();
+        user.setEmail("buyer@example.com");
 
         when(productRepository.findById(10L)).thenReturn(Optional.of(product));
-        when(cartRepository.findByProductProductIdAndUserEmail(10L, "buyer@example.com"))
+        when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+        when(cartRepository.findByProduct_ProductIdAndUser_Email(10L, "buyer@example.com"))
                 .thenReturn(Optional.empty());
 
         cartService.addItemToCart(10L, "buyer@example.com");
@@ -44,36 +52,39 @@ class CartServiceTest {
         CartItem savedItem = cartCaptor.getValue();
 
         assertSame(product, savedItem.getProduct());
-        assertEquals(1, savedItem.getQuantity());
+        assertSame(user, savedItem.getUser());
+        assertEquals(1, savedItem.getDays());
         assertEquals("buyer@example.com", savedItem.getUserEmail());
     }
 
     @Test
-    void addItemToCartIncrementsExistingQuantity() {
+    void addItemToCartIncrementsExistingDays() {
         Product product = new Product();
+        User user = new User();
         CartItem existingItem = new CartItem();
-        existingItem.setQuantity(2);
+        existingItem.setDays(2);
 
         when(productRepository.findById(10L)).thenReturn(Optional.of(product));
-        when(cartRepository.findByProductProductIdAndUserEmail(10L, "buyer@example.com"))
+        when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+        when(cartRepository.findByProduct_ProductIdAndUser_Email(10L, "buyer@example.com"))
                 .thenReturn(Optional.of(existingItem));
 
         cartService.addItemToCart(10L, "buyer@example.com");
 
-        assertEquals(3, existingItem.getQuantity());
+        assertEquals(3, existingItem.getDays());
         verify(cartRepository).save(existingItem);
     }
 
     @Test
-    void updateQuantityPersistsChangedQuantity() {
+    void updateDaysPersistsChangedDays() {
         CartItem existingItem = new CartItem();
-        existingItem.setQuantity(1);
+        existingItem.setDays(1);
 
         when(cartRepository.findById(1L)).thenReturn(Optional.of(existingItem));
 
-        cartService.updateQuantity(1L, 4);
+        cartService.updateDays(1L, 4);
 
-        assertEquals(4, existingItem.getQuantity());
+        assertEquals(4, existingItem.getDays());
         verify(cartRepository).save(existingItem);
     }
 }

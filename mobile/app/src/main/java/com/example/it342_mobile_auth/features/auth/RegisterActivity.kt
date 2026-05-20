@@ -3,6 +3,7 @@ package com.example.it342_mobile_auth.features.auth
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -30,7 +31,7 @@ class RegisterActivity : AppCompatActivity() {
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPass = findViewById<EditText>(R.id.etPassword)
 
-        val btnGoToLogin = findViewById<Button>(R.id.btnGoToLogin)
+        val btnGoToLogin = findViewById<TextView>(R.id.btnGoToLogin)
         val btnReg = findViewById<Button>(R.id.btnRegisterConfirm)
 
         btnGoToLogin.setOnClickListener {

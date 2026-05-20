@@ -17,14 +17,14 @@ export function addCartItem(productId, userEmail, token) {
   });
 }
 
-export function updateCartQuantity(id, quantity, token) {
-  return apiFetch(`/api/cart/${id}/quantity`, {
+export function updateCartDays(id, days, token) {
+  return apiFetch(`/api/cart/${id}/days`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       ...authHeaders(token),
     },
-    body: JSON.stringify({ quantity }),
+    body: JSON.stringify({ days }),
   });
 }
 

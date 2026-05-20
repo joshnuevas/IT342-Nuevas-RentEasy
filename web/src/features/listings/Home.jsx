@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Image as ImageIcon, Loader2 } from "lucide-react";
+import { AlertCircle, Eye, Image as ImageIcon, Loader2, ShoppingCart } from "lucide-react";
 import { addCartItem, getCart } from "../cart/cart.api";
 import { getApprovedProducts } from "./listings.api";
 import { Page } from "../../shared/RentEasyLayout";
 import {
-  addProductToLocalCart,
   currentUserEmail,
   formatCurrency,
   getVisibleProducts,
   normalizeProduct,
+  setLocalCart,
 } from "../../shared/rentEasyData";
 
 export default function Home() {
@@ -37,7 +37,9 @@ export default function Home() {
           const cartResponse = await getCart(email, token);
           if (cartResponse.ok) {
             const cartData = await cartResponse.json();
-            if (isMounted) setCartItemIds(new Set(cartData.map((item) => item.product.productId)));
+            const cartItems = Array.isArray(cartData) ? cartData : [];
+            setLocalCart(cartItems, email);
+            if (isMounted) setCartItemIds(new Set(cartItems.map(cartProductKey)));
           }
         }
       } catch (err) {
@@ -72,11 +74,19 @@ export default function Home() {
     try {
       const response = await addCartItem(normalized.productId, email, token);
       if (!response.ok) throw new Error("Cart API failed.");
+
+      const cartResponse = await getCart(email, token);
+      if (cartResponse.ok) {
+        const cartData = await cartResponse.json();
+        const cartItems = Array.isArray(cartData) ? cartData : [];
+        setLocalCart(cartItems, email);
+        setCartItemIds(new Set(cartItems.map(cartProductKey)));
+      }
     } catch {
-      addProductToLocalCart(normalized, email);
+      setError("Cart could not be updated. Make sure the backend is running and you are logged in.");
+      return;
     }
 
-    setCartItemIds((prev) => new Set(prev).add(normalized.productId));
     navigate("/cart");
   };
 
@@ -86,8 +96,8 @@ export default function Home() {
         <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">RentEasy Catalog</p>
-              <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Product Listing</h1>
+              <p className="mb-2 text-sm font-black uppercase text-[#4A3428]">RentEasy Catalog</p>
+              <h1 className="text-3xl font-black text-[#4A3428]">Product Listing</h1>
             </div>
             {!isLoading && (
               <span className="w-fit rounded-full bg-[#FDFBF9] px-4 py-2 text-sm font-black text-[#8C6A48] ring-1 ring-[#D0BCA0]">
@@ -102,27 +112,33 @@ export default function Home() {
             <Loader2 className="mb-4 h-10 w-10 animate-spin" />
             <p className="text-sm font-bold">Loading products...</p>
           </div>
-        ) : error && products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50 py-20 text-red-700">
-            <AlertCircle className="mb-3 h-10 w-10" />
-            <p className="text-sm font-bold">{error}</p>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#D0BCA0] bg-white py-20 text-center">
-            <p className="font-bold text-[#8C6A48]">No approved listings yet.</p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <ProductCard
-                key={product.productId}
-                product={product}
-                isInCart={cartItemIds.has(product.productId)}
-                addToCart={addToCart}
-                onView={() => navigate(`/products/${product.productId}`, { state: { product } })}
-              />
-            ))}
-          </div>
+          <>
+            {error && (
+              <div className="mb-5 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {products.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-[#D0BCA0] bg-white py-20 text-center">
+                <p className="font-bold text-[#8C6A48]">No approved listings found in the database.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.productId}
+                    product={product}
+                    isInCart={cartItemIds.has(String(product.productId))}
+                    addToCart={addToCart}
+                    onView={() => navigate(`/products/${product.productId}`, { state: { product } })}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </section>
     </Page>
@@ -145,22 +161,33 @@ function ProductCard({ product, isInCart, addToCart, onView }) {
         <button type="button" onClick={onView} className="truncate text-left text-lg font-black text-[#4A3428] hover:underline">
           {product.name}
         </button>
-        <p className="w-fit rounded-full bg-[#2F6F62]/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-[#2F6F62]">
+        <p className="w-fit rounded-full bg-[#8C6A48]/15 px-3 py-1 text-xs font-black uppercase text-[#4A3428]">
           {product.category}
         </p>
         <p className="mt-auto text-base font-black text-[#4A3428]">{formatCurrency(product.price)} / day</p>
-        <button
-          type="button"
-          disabled={isInCart}
-          onClick={() => addToCart(product)}
-          className={`mt-2 h-11 rounded-lg text-sm font-black uppercase tracking-wide transition-colors ${
-            isInCart
-              ? "cursor-not-allowed bg-gray-100 text-gray-400"
-              : "bg-[#4A3428] text-white hover:bg-[#3E2B22]"
-          }`}
-        >
-          {buttonText}
-        </button>
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={onView}
+            className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[#D0BCA0] text-sm font-black text-[#4A3428] transition-colors hover:border-[#4A3428] hover:bg-[#FDFBF9]"
+          >
+            <Eye className="h-4 w-4" />
+            View Details
+          </button>
+          <button
+            type="button"
+            disabled={isInCart}
+            onClick={() => addToCart(product)}
+            className={`flex h-11 items-center justify-center gap-2 rounded-lg text-sm font-black uppercase transition-colors ${
+              isInCart
+                ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                : "bg-[#4A3428] text-white hover:bg-[#3E2B22]"
+            }`}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {buttonText}
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -169,3 +196,9 @@ function ProductCard({ product, isInCart, addToCart, onView }) {
 function ownerEmail(product) {
   return String(product.owner?.email || product.ownerEmail || product.userEmail || product.email || "").toLowerCase();
 }
+
+function cartProductKey(item) {
+  return String(item.product?.productId ?? item.productId ?? item.id);
+}
+
+

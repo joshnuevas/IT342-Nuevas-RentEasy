@@ -6,10 +6,12 @@ import java.util.List;
 public class PaymentCheckoutRequest {
     private String orderNumber;
     private List<PaymentCheckoutItem> items;
-    private PaymentShippingDetails shipping;
+    private PaymentDeliveryDetails delivery;
     private BigDecimal subtotal;
     private BigDecimal serviceFee;
     private BigDecimal total;
+    private String successUrl;
+    private String cancelUrl;
 
     public String getOrderNumber() {
         return orderNumber;
@@ -27,12 +29,12 @@ public class PaymentCheckoutRequest {
         this.items = items;
     }
 
-    public PaymentShippingDetails getShipping() {
-        return shipping;
+    public PaymentDeliveryDetails getDelivery() {
+        return delivery;
     }
 
-    public void setShipping(PaymentShippingDetails shipping) {
-        this.shipping = shipping;
+    public void setDelivery(PaymentDeliveryDetails delivery) {
+        this.delivery = delivery;
     }
 
     public BigDecimal getSubtotal() {
@@ -57,5 +59,21 @@ public class PaymentCheckoutRequest {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public String getSuccessUrl() {
+        return successUrl;
+    }
+
+    public void setSuccessUrl(String successUrl) {
+        this.successUrl = successUrl;
+    }
+
+    public String getCancelUrl() {
+        return cancelUrl;
+    }
+
+    public void setCancelUrl(String cancelUrl) {
+        this.cancelUrl = cancelUrl;
     }
 }

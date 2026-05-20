@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import edu.cit.nuevas.renteasy.admin.Admin;
+import edu.cit.nuevas.renteasy.admin.AdminRepository;
 import edu.cit.nuevas.renteasy.core.security.JwtUtil;
 import edu.cit.nuevas.renteasy.users.User;
 import edu.cit.nuevas.renteasy.users.UserRepository;
@@ -26,6 +28,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private AdminRepository adminRepository;
 
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
@@ -45,6 +50,7 @@ class UserServiceTest {
         request.password = "secret";
 
         when(userRepository.findByEmail(request.email)).thenReturn(Optional.empty());
+        when(adminRepository.findByEmail(request.email)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(request.password)).thenReturn("hashed-secret");
 
         String result = userService.register(request);
@@ -74,6 +80,20 @@ class UserServiceTest {
     }
 
     @Test
+    void registerRejectsDuplicateAdminEmail() {
+        RegisterRequest request = new RegisterRequest();
+        request.email = "admin1@renteasy.com";
+
+        when(userRepository.findByEmail(request.email)).thenReturn(Optional.empty());
+        when(adminRepository.findByEmail(request.email)).thenReturn(Optional.of(new Admin()));
+
+        String result = userService.register(request);
+
+        assertEquals("Email already exists", result);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void loginReturnsJwtForValidCredentials() {
         LoginRequest request = new LoginRequest();
         request.email = "ana@example.com";
@@ -90,6 +110,26 @@ class UserServiceTest {
         String token = userService.login(request);
 
         assertEquals("jwt-token", token);
+    }
+
+    @Test
+    void loginReturnsJwtForValidAdminCredentials() {
+        LoginRequest request = new LoginRequest();
+        request.email = "admin1@renteasy.com";
+        request.password = "admin123";
+
+        Admin admin = new Admin();
+        admin.setEmail(request.email);
+        admin.setPassword("hashed-admin");
+
+        when(userRepository.findByEmail(request.email)).thenReturn(Optional.empty());
+        when(adminRepository.findByEmail(request.email)).thenReturn(Optional.of(admin));
+        when(passwordEncoder.matches(request.password, admin.getPassword())).thenReturn(true);
+        when(jwtUtil.generateToken(request.email)).thenReturn("admin-jwt-token");
+
+        String token = userService.login(request);
+
+        assertEquals("admin-jwt-token", token);
     }
 
     @Test

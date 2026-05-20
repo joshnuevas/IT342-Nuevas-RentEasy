@@ -1,6 +1,6 @@
 package edu.cit.nuevas.renteasy.payments;
 
-public class PaymentShippingDetails {
+public class PaymentDeliveryDetails {
     private String name;
     private String email;
     private String phone;

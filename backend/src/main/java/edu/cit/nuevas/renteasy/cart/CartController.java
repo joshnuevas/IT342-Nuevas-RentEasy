@@ -35,13 +35,26 @@ public class CartController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}/days")
+    public void updateDays(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+        cartService.updateDays(id, readDays(body));
+    }
+
     @PutMapping("/{id}/quantity")
-    public void update(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
-        cartService.updateQuantity(id, body.get("quantity"));
+    public void updateQuantityAlias(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+        cartService.updateDays(id, readDays(body));
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         cartService.remove(id);
+    }
+
+    private int readDays(Map<String, Integer> body) {
+        Integer days = body.get("days");
+        if (days == null) {
+            days = body.get("quantity");
+        }
+        return days == null || days < 1 ? 1 : days;
     }
 }

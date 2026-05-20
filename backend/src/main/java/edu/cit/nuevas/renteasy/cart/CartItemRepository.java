@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
-    List<CartItem> findByUserEmail(String userEmail);
-    Optional<CartItem> findByProductProductIdAndUserEmail(Long productId, String userEmail);
+    List<CartItem> findByUser_Email(String userEmail);
+    Optional<CartItem> findByProduct_ProductIdAndUser_Email(Long productId, String userEmail);
+    void deleteByProduct_ProductId(Long productId);
 }

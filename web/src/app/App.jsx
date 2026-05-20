@@ -6,6 +6,7 @@ import CreateListing from "../features/listings/CreateListing";
 import MyListings from "../features/listings/MyListings";
 import ProductDetail from "../features/listings/ProductDetail";
 import AdminDashboard from "../features/admin/AdminDashboard";
+import AdminProductDetail from "../features/admin/AdminProductDetail";
 import Cart from "../features/cart/Cart";
 import Checkout from "../features/checkout/Checkout";
 import OrderConfirmation from "../features/checkout/OrderConfirmation";
@@ -96,6 +97,15 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/products/:productId"
+          element={
+            <ProtectedRoute>
+              <AdminProductDetail />
             </ProtectedRoute>
           }
         />

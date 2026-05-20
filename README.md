@@ -1,192 +1,359 @@
 # RentEasy
 
-## Vertical Slice Architecture
+RentEasy is a rental marketplace system for browsing, listing, approving, renting, and tracking rental items through a React web app, Android Kotlin mobile app, Spring Boot backend, Supabase PostgreSQL database, and PayMongo checkout integration.
 
-This branch refactors RentEasy from a horizontal/layered structure into vertical feature slices.
+The project supports regular users and administrators. Regular users can register, log in, browse approved listings, view product details, add products to a cart, set rental days, submit listings for approval, update profile information, and complete checkout through PayMongo. Administrators use a separate admin account flow to review pending listings, approve or reject products, remove products, view orders, and manage admin-side product/order views.
 
-Current feature organization:
+## Project Structure
 
-* Backend: `auth`, `users`, `listings`, `cart`, `admin`, and `core`
-* Web: `features/auth`, `features/listings`, `features/cart`, `features/admin`, `shared`, and `app`
-* Mobile: `features/auth`, `features/dashboard`, and `core/network`
+```text
+IT342-Nuevas-RentEasy/
+  backend/   Spring Boot REST API
+  web/       React/Vite web frontend
+  mobile/    Android Kotlin mobile app
+  docs/      Documentation and test evidence
+```
 
-Each feature slice keeps related UI/API/controller/service/model/repository code close to the feature it supports, while cross-cutting configuration, security, routing, and network helpers live in shared/core folders.
+## Feature Organization
 
-## 📌 Project Description
+The codebase is organized around feature areas.
 
-RentEasy is a full-stack web application designed to simplify equipment rental management through a secure and user-friendly platform. Users can register, log in, and access protected features within the system.
+Backend packages:
 
-The platform focuses on enabling users to rent high-value equipment such as cameras and tools through a seamless digital experience. It supports both customers and administrators, offering features like product browsing, cart management, checkout, and inventory control.
+```text
+auth
+users
+admin
+listings
+cart
+orders
+payments
+core
+```
 
-RentEasy demonstrates secure authentication, protected routing, and seamless frontend-backend integration within a scalable web application architecture.
+Web feature folders:
 
----
+```text
+features/auth
+features/listings
+features/cart
+features/checkout
+features/profile
+features/admin
+shared
+app
+```
 
-## 🚀 Technologies Used
+Mobile feature folders:
 
-### 🔹 Frontend (Web)
+```text
+features/auth
+features/dashboard
+core/network
+```
 
-* Vite
-* React
-* TypeScript
+## Main Features
 
-### 🔹 Mobile
+### User Features
 
-* Android Studio
-* Kotlin (Jetpack Compose)
+* User registration and login
+* JWT-based protected pages and backend endpoints
+* Approved rental catalog
+* Product detail view with owner information
+* Frontend product search/filtering
+* Product listing submission
+* My Listings page
+* Cart add, view, remove, and rental days update
+* Checkout form with delivery/contact details
+* PayMongo checkout redirect
+* Order confirmation and order history
+* Profile name and phone update through backend
+* Frontend profile picture change
 
-### 🔹 Backend
+### Admin Features
 
-* Spring Boot
+* Separate admin accounts stored in the `admins` table
+* Admin dashboard
+* Product management
+* Pending listing approval/rejection
+* Product deletion
+* Admin product detail view
+* Rental order viewing
+* Order status update
+* User/admin summary view
+
+### Mobile Features
+
+* Android login and registration
+* Customer catalog/dashboard
+* Product detail view
+* Add to cart
+* Cart rental day update and item removal
+* Listing submission with mobile image selection support
+* Profile view/update
+* PayMongo checkout request and mobile return redirect
+* Backend order history
+* Admin mobile area limited to admin features
+
+## Technology Stack
+
+### Backend
+
+* Java 21
+* Spring Boot 3.5.0
+* Spring Web
+* Spring Security
+* Spring Data JPA
+* Hibernate
+* PostgreSQL JDBC Driver
+* JJWT 0.11.5
+* BCrypt password hashing
 * Maven
-* Java 17
-* Spring Security (JWT Authentication)
 
-### 🔹 Database
+### Database
 
-* Supabase (PostgreSQL)
+* Supabase PostgreSQL
+
+### Web Frontend
+
+* React 19
+* Vite 7
+* JavaScript/JSX
+* React Router
+* Tailwind CSS
+* Lucide React
+* npm
+
+### Mobile App
+
+* Android native app
+* Kotlin
+* XML/AppCompat-based Android UI
+* Material Components
+* Retrofit 2.9.0
+* Gson Converter
+* Kotlin Coroutines
+* AndroidX Lifecycle
+* Gradle
 
 ### Payments
 
 * PayMongo Checkout API
 
-### 🔹 Tools & IDEs
+### Deployment
 
-* VS Code
-* IntelliJ IDEA
+* Web frontend: Vercel
+* Backend: Render
+* Database: Supabase PostgreSQL
+* Mobile: APK build/distribution
 
----
+## Database Tables
 
-## ⚙️ Steps to Run Backend
+```text
+users
+admins
+products
+cart_items
+rental_orders
+rental_order_items
+```
 
-1. Navigate to backend folder:
+Key table notes:
 
-   ```bash
-   cd backend
-   ```
+* `users` stores regular customer accounts.
+* `admins` stores administrator accounts separately from regular users.
+* `products` stores rental listings and references the owner through `owner_id`.
+* `cart_items` stores selected products per user and uses `days` for rental duration.
+* `cart_items` uses `cart_item_id` as its primary key.
+* `rental_orders` stores checkout/order records and delivery details.
+* `rental_order_items` stores individual products included in an order.
+* Delivery columns use `delivery_*` naming instead of `shipping_*`.
 
-2. Set your backend environment variables:
+## Backend Environment Variables
 
-   ```powershell
-   $env:DATABASE_URL="your_supabase_database_url"
-   $env:DB_USERNAME="your_database_username"
-   $env:DB_PASSWORD="your_database_password"
-   $env:PAYMONGO_SECRET_KEY="your_paymongo_test_secret_key"
-   $env:APP_FRONTEND_URL="http://localhost:5173"
-   ```
+The backend requires these environment variables:
 
-   Optional:
+```powershell
+$env:DATABASE_URL="your_supabase_database_url"
+$env:DB_USERNAME="your_database_username"
+$env:DB_PASSWORD="your_database_password"
+$env:PAYMONGO_SECRET_KEY="your_paymongo_test_secret_key"
+$env:APP_FRONTEND_URL="http://localhost:5173"
+```
 
-   ```powershell
-   $env:PAYMONGO_PAYMENT_METHODS="card,gcash"
-   ```
+Optional:
 
-3. Build the project:
+```powershell
+$env:PAYMONGO_PAYMENT_METHODS="card,gcash"
+```
 
-   ```bash
-   mvn clean install
-   ```
+## Run the Backend
 
-4. Run the Spring Boot application:
+```bash
+cd backend
+mvn clean test
+mvn spring-boot:run
+```
 
-   ```bash
-   mvn spring-boot:run
-   ```
+Local backend URL:
 
-5. Backend will run on:
+```text
+http://localhost:8080
+```
 
-   ```
-   http://localhost:8080
-   ```
+Production backend URL:
 
----
+```text
+https://it342-nuevas-renteasy-1.onrender.com
+```
 
-## 🌐 Steps to Run Web App
+## Run the Web App
 
-1. Navigate to frontend folder:
+```bash
+cd web
+npm install
+npm run dev
+```
 
-   ```bash
-   cd web
-   ```
+Local web URL:
 
-2. Install dependencies:
+```text
+http://localhost:5173
+```
 
-   ```bash
-   npm install
-   ```
+Build for production:
 
-3. Run development server:
+```bash
+npm run build
+```
 
-   ```bash
-   npm run dev
-   ```
+## Run the Mobile App
 
-4. Open in browser:
+1. Open the `mobile` folder in Android Studio.
+2. Sync Gradle dependencies.
+3. Start an emulator or connect an Android device.
+4. Run the app module.
 
-   ```
-   http://localhost:5173
-   ```
+The emulator backend base URL is configured as:
 
----
+```text
+http://10.0.2.2:8080/
+```
 
-## 📱 Steps to Run Mobile App
+This points the Android emulator to the backend running on the host machine.
 
-1. Open the project in **Android Studio**
+## API Endpoints
 
-2. Sync Gradle dependencies
+Base URL for local development:
 
-3. Connect an emulator or Android device
+```text
+http://localhost:8080
+```
 
-4. Click **Run ▶️**
+### Authentication
 
----
+```text
+POST /api/auth/register
+POST /api/auth/login
+```
 
-## 🔗 API Endpoints
+Logout is handled on the frontend/mobile side by clearing the saved token. There is no backend logout endpoint in the current implementation.
 
-### 🔐 Authentication
+### User Profile
 
-* `POST /auth/register` – Register user
-* `POST /auth/login` – Login user
-* `POST /auth/logout` – Logout user
+```text
+GET /api/user/me
+GET /api/user/profile
+PUT /api/user/profile
+```
 
-### 📦 Products
+### Products
 
-* `GET /products` – Get all products
-* `GET /products/{id}` – Get product by ID
-* `GET /products/search?query=` – Search products
+```text
+GET /api/products
+GET /api/products/all-approved
+GET /api/products/pending
+POST /api/products
+PUT /api/products/{id}/status
+DELETE /api/products/{id}
+```
 
-### 🛒 Cart
+Search/filtering is handled on the frontend using loaded catalog data. There is no backend search endpoint in the current implementation.
 
-* `GET /cart` – Get user cart
-* `POST /cart/items` – Add item to cart
-* `PUT /cart/items/{id}` – Update cart item
-* `DELETE /cart/items/{id}` – Remove item
+### Cart
 
-### 📄 Orders
+```text
+GET /api/cart?email=<userEmail>
+POST /api/cart/add
+PUT /api/cart/{cartItemId}/days
+DELETE /api/cart/{cartItemId}
+```
 
-* `POST /orders` – Place order
-* `GET /orders/{id}` – Get order details
+The API response field `id` represents the `cart_item_id` primary key in the database.
 
-### 🛠️ Admin
+### Orders
 
-* `POST /admin/products` – Add product
-* `PUT /admin/products/{id}` – Update product
-* `DELETE /admin/products/{id}` – Delete product
-* `GET /admin/orders` – View all orders
+```text
+POST /api/orders
+GET /api/orders/my
+GET /api/orders
+PUT /api/orders/{orderNumber}/status
+```
 
----
+### Payments
 
-## 👨‍💻 Author
+```text
+POST /api/payments/paymongo/checkout
+GET /api/payments/paymongo/mobile/success
+GET /api/payments/paymongo/mobile/cancel
+```
 
-**Nuevas, Josh Anton K.**
-IT342-G1 – System Integration and Architecture
+The mobile PayMongo return endpoints are public redirect endpoints because PayMongo/browser redirects do not send the user's JWT token.
 
----
+## Current Out of Scope
 
-## 📄 Version
+These features are not part of the current final implementation:
 
-* Version: 0.2
+* Backend logout endpoint
+* Backend search endpoint
+* Forgot password flow
+* Social login
+* Email notifications
+* Wishlist or saved items
+* Product edit form for existing listings
+* Backend profile image upload endpoint
+* Supabase Storage file upload integration
+* PayMongo webhook verification
+* Advanced analytics dashboard
+* Real-time chat
+* Multi-language support
+
+## Verification
+
+The project has been verified with:
+
+```bash
+cd backend
+mvn clean test
+```
+
+```bash
+cd web
+npm run build
+```
+
+```bash
+cd mobile
+.\gradlew.bat testDebugUnitTest
+```
+
+## Author
+
+Josh Anton K. Nuevas  
+IT342-G1 - System Integration and Architecture
+
+## Version
+
+* Version: 0.3
 * Status: Final
-* Date: 02/28/2026
-
----
+* Date: 05/20/2026

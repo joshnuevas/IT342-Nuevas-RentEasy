@@ -18,6 +18,15 @@ interface AuthApi {
     @POST("/api/auth/login")
     suspend fun loginUser(@Body request: LoginRequest): Response<ResponseBody>
 
+    @GET("/api/user/profile")
+    suspend fun getProfile(@Header("Authorization") token: String): Response<UserDto>
+
+    @PUT("/api/user/profile")
+    suspend fun updateProfile(
+        @Header("Authorization") token: String,
+        @Body request: UserProfileRequest
+    ): Response<UserDto>
+
     @GET("/api/products/all-approved")
     suspend fun getApprovedProducts(): Response<List<ProductDto>>
 
@@ -58,11 +67,11 @@ interface AuthApi {
         @Body request: CartAddRequest
     ): Response<ResponseBody>
 
-    @PUT("/api/cart/{id}/quantity")
-    suspend fun updateCartQuantity(
+    @PUT("/api/cart/{id}/days")
+    suspend fun updateCartDays(
         @Header("Authorization") token: String,
         @Path("id") id: Long,
-        @Body request: QuantityRequest
+        @Body request: DaysRequest
     ): Response<ResponseBody>
 
     @DELETE("/api/cart/{id}")
@@ -76,4 +85,23 @@ interface AuthApi {
         @Header("Authorization") token: String,
         @Body request: PaymentCheckoutRequest
     ): Response<PaymentCheckoutResponse>
+
+    @POST("/api/orders")
+    suspend fun createOrder(
+        @Header("Authorization") token: String,
+        @Body request: PaymentCheckoutRequest
+    ): Response<OrderDto>
+
+    @GET("/api/orders/my")
+    suspend fun getMyOrders(@Header("Authorization") token: String): Response<List<OrderDto>>
+
+    @GET("/api/orders")
+    suspend fun getAllOrders(@Header("Authorization") token: String): Response<List<OrderDto>>
+
+    @PUT("/api/orders/{orderNumber}/status")
+    suspend fun updateOrderStatus(
+        @Header("Authorization") token: String,
+        @Path("orderNumber") orderNumber: String,
+        @Body request: OrderStatusRequest
+    ): Response<OrderDto>
 }

@@ -4,16 +4,13 @@ import { AlertCircle, Image as ImageIcon, Loader2, Plus } from "lucide-react";
 import { Page } from "../../shared/RentEasyLayout";
 import {
   currentUserEmail,
-  deleteStoredListing,
   formatCurrency,
-  getStoredListings,
   normalizeProduct,
 } from "../../shared/rentEasyData";
 import { deleteProduct, getAllProducts } from "./listings.api";
 
 export default function MyListings() {
   const navigate = useNavigate();
-  const [localListings, setLocalListings] = useState(() => getStoredListings());
   const [databaseListings, setDatabaseListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,7 +35,7 @@ export default function MyListings() {
       } catch {
         if (isActive) {
           setDatabaseListings([]);
-          setError("Database listings could not be loaded. Showing saved browser listings only.");
+          setError("Database listings could not be loaded. Make sure the backend is running and you are logged in.");
         }
       } finally {
         if (isActive) setIsLoading(false);
@@ -58,13 +55,8 @@ export default function MyListings() {
       .filter((item) => belongsToCurrentUser(item, email))
       .map((item) => ({ ...item, source: "database" }));
 
-    const ownedLocalListings = localListings
-      .map(normalizeProduct)
-      .filter((item) => belongsToCurrentUser(item, email))
-      .map((item) => ({ ...item, source: "local" }));
-
-    return mergeListings(ownedDatabaseListings, ownedLocalListings);
-  }, [databaseListings, email, localListings]);
+    return mergeListings(ownedDatabaseListings);
+  }, [databaseListings, email]);
 
   const handleRemove = async (item) => {
     const productId = item.productId;
@@ -73,13 +65,9 @@ export default function MyListings() {
     setError("");
 
     try {
-      if (item.source === "database") {
-        const response = await deleteProduct(productId, token);
-        if (!response.ok) throw new Error("Unable to delete product.");
-      }
+      const response = await deleteProduct(productId, token);
+      if (!response.ok && response.status !== 404) throw new Error("Unable to delete product.");
 
-      deleteStoredListing(productId);
-      setLocalListings(getStoredListings());
       setDatabaseListings((current) => current.filter((listing) => String(listing.productId) !== String(productId)));
       setNotice("Listing removed successfully.");
       setTimeout(() => setNotice(""), 1800);
@@ -95,8 +83,8 @@ export default function MyListings() {
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Owner Center</p>
-            <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">My Listings</h1>
+            <p className="mb-2 text-sm font-black uppercase text-[#4A3428]">Owner Center</p>
+            <h1 className="text-3xl font-black text-[#4A3428]">My Listings</h1>
           </div>
           <Link
             to="/create-listing"
@@ -197,9 +185,9 @@ function ownerEmail(item) {
   return String(item.owner?.email || item.ownerEmail || item.userEmail || item.email || "").toLowerCase();
 }
 
-function mergeListings(databaseListings, localListings) {
+function mergeListings(databaseListings) {
   const seen = new Set();
-  return [...databaseListings, ...localListings].filter((item) => {
+  return databaseListings.filter((item) => {
     const key = String(item.productId);
     if (seen.has(key)) return false;
     seen.add(key);
@@ -212,3 +200,5 @@ function statusLabel(status) {
   if (status === "REJECTED") return "Rejected";
   return "Pending Review";
 }
+
+

@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import edu.cit.nuevas.renteasy.users.User;
-import edu.cit.nuevas.renteasy.users.UserRepository;
-
 @Configuration
 public class AdminSeeder {
 
@@ -16,21 +13,20 @@ public class AdminSeeder {
     private PasswordEncoder passwordEncoder;
 
     @Bean
-    public CommandLineRunner initDatabase(UserRepository userRepository) {
+    public CommandLineRunner initDatabase(AdminRepository adminRepository) {
         return args -> {
-            seedAdmin(userRepository, "admin1@renteasy.com", "AdminOne");
-            seedAdmin(userRepository, "admin2@renteasy.com", "AdminTwo");
+            seedAdmin(adminRepository, "admin1@renteasy.com", "AdminOne");
+            seedAdmin(adminRepository, "admin2@renteasy.com", "AdminTwo");
         };
     }
 
-    private void seedAdmin(UserRepository repo, String email, String name) {
+    private void seedAdmin(AdminRepository repo, String email, String name) {
         if (repo.findByEmail(email).isEmpty()) {
-            User admin = new User();
+            Admin admin = new Admin();
             admin.setEmail(email);
             admin.setPassword(passwordEncoder.encode("admin123")); 
             admin.setFirstName(name);
             admin.setLastName("System");
-            admin.setRole("ADMIN");
             repo.save(admin);
             System.out.println("Seeded Admin Account: " + email);
         }

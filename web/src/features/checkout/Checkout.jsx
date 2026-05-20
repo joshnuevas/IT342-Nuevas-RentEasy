@@ -1,29 +1,31 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Page } from "../../shared/RentEasyLayout";
+import { deleteCartItem, getCart } from "../cart/cart.api";
 import {
   calculateCartTotal,
+  cartItemDays,
   clearLocalCart,
   currentUserEmail,
   formatCurrency,
-  getLocalCart,
   getProfile,
   saveOrder,
+  setLocalCart,
 } from "../../shared/rentEasyData";
-import { createPayMongoCheckout } from "./payments.api";
+import { createOrder, createPayMongoCheckout } from "./payments.api";
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { state, search } = useLocation();
   const paymentStatus = new URLSearchParams(search).get("payment");
   const email = currentUserEmail();
-  const items = state?.items?.length ? state.items : getLocalCart(email);
+  const [items, setItems] = useState(() => (state?.items?.length ? state.items : []));
   const subtotal = calculateCartTotal(items);
   const serviceFee = items.length > 0 ? Math.round(subtotal * 0.05) : 0;
   const total = subtotal + serviceFee;
   const profile = getProfile();
-  const [shipping, setShipping] = useState({
+  const [delivery, setDelivery] = useState({
     name: profile.name,
     email: profile.email || email,
     phone: profile.phone === "09XX XXX XXXX" ? "" : profile.phone,
@@ -33,10 +35,38 @@ export default function Checkout() {
   });
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState("");
-  const isReady = useMemo(() => Object.values(shipping).every(Boolean), [shipping]);
+  const isReady = useMemo(() => Object.values(delivery).every(Boolean), [delivery]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadCheckoutCart() {
+      if (state?.items?.length) return;
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("Missing login token.");
+        const response = await getCart(email, token);
+        if (!response.ok) throw new Error("Unable to load cart.");
+        const cartData = await response.json();
+        const cartItems = Array.isArray(cartData) ? cartData : [];
+        setLocalCart(cartItems, email);
+        if (isActive) setItems(cartItems);
+      } catch {
+        setLocalCart([], email);
+        if (isActive) setPaymentError("Checkout cart could not be loaded from the database.");
+      }
+    }
+
+    loadCheckoutCart();
+
+    return () => {
+      isActive = false;
+    };
+  }, [email, state?.items]);
 
   const handleChange = (event) => {
-    setShipping((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    setDelivery((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   };
 
   const handleSubmit = async (event) => {
@@ -47,7 +77,7 @@ export default function Checkout() {
     const orderNumber = `RE-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
     const payload = {
       orderNumber,
-      shipping,
+      delivery,
       subtotal,
       serviceFee,
       total,
@@ -56,7 +86,7 @@ export default function Checkout() {
         name: item.product?.name,
         description: item.product?.description,
         price: item.product?.price,
-        quantity: item.quantity,
+        days: cartItemDays(item),
         imageUrl: item.product?.imageUrl,
       })),
     };
@@ -66,10 +96,11 @@ export default function Checkout() {
       if (!response.ok) throw new Error(await readPaymentError(response));
 
       const checkout = await response.json();
+      await createOrder(payload);
       const order = saveOrder({
         orderNumber,
         items,
-        shipping,
+        delivery,
         subtotal,
         serviceFee,
         total,
@@ -80,6 +111,7 @@ export default function Checkout() {
         paymongoReferenceNumber: checkout.referenceNumber,
       });
 
+      await clearBackendCart(items);
       clearLocalCart(email);
 
       if (checkout.checkoutUrl) {
@@ -97,8 +129,8 @@ export default function Checkout() {
     <Page>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
-          <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Payment</p>
-          <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Checkout</h1>
+          <p className="mb-2 text-sm font-black uppercase text-[#4A3428]">Payment</p>
+          <h1 className="text-3xl font-black text-[#4A3428]">Checkout</h1>
         </div>
 
         {paymentStatus === "cancelled" && (
@@ -121,23 +153,24 @@ export default function Checkout() {
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
             <section className="rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="mb-6 text-lg font-black text-[#4A3428]">Shipping Details</h2>
+              <h2 className="mb-6 text-lg font-black text-[#4A3428]">Delivery Details</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="Full Name" name="name" value={shipping.name} onChange={handleChange} />
-                <Input label="Email" name="email" type="email" value={shipping.email} onChange={handleChange} />
-                <Input label="Phone" name="phone" value={shipping.phone} onChange={handleChange} />
-                <Input label="City" name="city" value={shipping.city} onChange={handleChange} />
+                <Input label="Full Name" name="name" placeholder="Enter your full name" value={delivery.name} onChange={handleChange} />
+                <Input label="Email" name="email" type="email" placeholder="Enter your email address" value={delivery.email} onChange={handleChange} />
+                <Input label="Phone" name="phone" placeholder="Enter your phone number" value={delivery.phone} onChange={handleChange} />
+                <Input label="City" name="city" placeholder="Enter your city" value={delivery.city} onChange={handleChange} />
                 <label className="block sm:col-span-2">
                   <span className="mb-2 block text-sm font-bold text-[#4A3428]">Complete Address</span>
                   <input
                     name="address"
-                    value={shipping.address}
+                    value={delivery.address}
                     onChange={handleChange}
+                    placeholder="Enter your complete address"
                     required
                     className="h-12 w-full rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] px-4 text-sm outline-none focus:border-[#4A3428] focus:bg-white focus:ring-4 focus:ring-[#D0BCA0]/35"
                   />
                 </label>
-                <Input label="ZIP Code" name="zip" value={shipping.zip} onChange={handleChange} />
+                <Input label="ZIP Code" name="zip" placeholder="Enter your ZIP code" value={delivery.zip} onChange={handleChange} />
               </div>
             </section>
 
@@ -146,8 +179,10 @@ export default function Checkout() {
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between gap-3 border-b border-[#D0BCA0] pb-3 text-sm">
-                    <span className="font-bold text-[#4A3428]">{item.product?.name} x {item.quantity}</span>
-                    <span>{formatCurrency((item.product?.price || 0) * item.quantity)}</span>
+                    <span className="font-bold text-[#4A3428]">
+                      {item.product?.name} - {cartItemDays(item)} day{cartItemDays(item) === 1 ? "" : "s"}
+                    </span>
+                    <span>{formatCurrency((item.product?.price || 0) * cartItemDays(item))}</span>
                   </div>
                 ))}
               </div>
@@ -164,7 +199,7 @@ export default function Checkout() {
               <button
                 type="submit"
                 disabled={!isReady || isPaying}
-                className="mt-6 flex h-12 w-full items-center justify-center rounded-lg bg-[#4A3428] font-black uppercase tracking-wide text-white hover:bg-[#3E2B22] disabled:opacity-60"
+                className="mt-6 flex h-12 w-full items-center justify-center rounded-lg bg-[#4A3428] font-black uppercase text-white hover:bg-[#3E2B22] disabled:opacity-60"
               >
                 {isPaying ? <Loader2 className="h-5 w-5 animate-spin" /> : "Pay with PayMongo"}
               </button>
@@ -187,6 +222,17 @@ async function readPaymentError(response) {
   } catch {
     return "PayMongo checkout could not be started.";
   }
+}
+
+async function clearBackendCart(items) {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  await Promise.allSettled(
+    items
+      .filter((item) => item.id)
+      .map((item) => deleteCartItem(item.id, token))
+  );
 }
 
 function Message({ tone, children }) {
@@ -224,3 +270,5 @@ function Row({ label, value }) {
     </div>
   );
 }
+
+

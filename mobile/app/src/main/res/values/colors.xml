@@ -5,8 +5,12 @@
     <color name="renteasy_brown">#4A3428</color>
     <color name="renteasy_ink">#3E2B22</color>
     <color name="renteasy_caramel">#8C6A48</color>
+    <color name="renteasy_coffee">#6F4D37</color>
+    <color name="renteasy_mocha">#B08A68</color>
     <color name="renteasy_tan">#D0BCA0</color>
     <color name="renteasy_paper">#FDFBF9</color>
     <color name="renteasy_canvas">#F5F2F0</color>
-    <color name="renteasy_sage">#2F6F62</color>
+    <color name="renteasy_soft">#FBF7F2</color>
+    <color name="renteasy_line">#E7D9C8</color>
+    <color name="renteasy_danger">#B34B3F</color>
 </resources>

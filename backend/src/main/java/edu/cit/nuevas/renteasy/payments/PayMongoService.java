@@ -58,17 +58,23 @@ public class PayMongoService {
                 ? request.getOrderNumber()
                 : "RE-" + System.currentTimeMillis();
         String frontendUrl = property("app.frontend-url", "APP_FRONTEND_URL", "http://localhost:5173");
+        String successUrl = StringUtils.hasText(request.getSuccessUrl())
+                ? request.getSuccessUrl()
+                : frontendUrl + "/order-confirmation?payment=success&provider=paymongo&reference=" + referenceNumber;
+        String cancelUrl = StringUtils.hasText(request.getCancelUrl())
+                ? request.getCancelUrl()
+                : frontendUrl + "/checkout?payment=cancelled";
 
         Map<String, Object> attributes = new LinkedHashMap<>();
-        attributes.put("billing", buildBilling(request.getShipping()));
+        attributes.put("billing", buildBilling(request.getDelivery()));
         attributes.put("send_email_receipt", true);
         attributes.put("show_description", true);
         attributes.put("show_line_items", true);
         attributes.put("description", "RentEasy rental order " + referenceNumber);
         attributes.put("line_items", buildLineItems(request));
         attributes.put("payment_method_types", paymentMethods());
-        attributes.put("success_url", frontendUrl + "/order-confirmation?payment=success&provider=paymongo&reference=" + referenceNumber);
-        attributes.put("cancel_url", frontendUrl + "/checkout?payment=cancelled");
+        attributes.put("success_url", successUrl);
+        attributes.put("cancel_url", cancelUrl);
         attributes.put("reference_number", referenceNumber);
         attributes.put("metadata", Map.of("order_number", referenceNumber, "source", "RentEasy"));
 
@@ -131,7 +137,7 @@ public class PayMongoService {
             lineItem.put("amount", toCentavos(item.getPrice()));
             lineItem.put("description", StringUtils.hasText(item.getDescription()) ? item.getDescription() : item.getName());
             lineItem.put("name", item.getName());
-            lineItem.put("quantity", item.getQuantity() == null || item.getQuantity() < 1 ? 1 : item.getQuantity());
+            lineItem.put("quantity", item.getDays() == null || item.getDays() < 1 ? 1 : item.getDays());
 
             if (StringUtils.hasText(item.getImageUrl()) && item.getImageUrl().startsWith("http")) {
                 lineItem.put("images", List.of(item.getImageUrl()));
@@ -157,20 +163,20 @@ public class PayMongoService {
         return lineItems;
     }
 
-    private Map<String, Object> buildBilling(PaymentShippingDetails shipping) {
-        if (shipping == null) {
+    private Map<String, Object> buildBilling(PaymentDeliveryDetails delivery) {
+        if (delivery == null) {
             return Map.of();
         }
 
         Map<String, Object> billing = new LinkedHashMap<>();
-        putIfPresent(billing, "name", shipping.getName());
-        putIfPresent(billing, "email", shipping.getEmail());
-        putIfPresent(billing, "phone", shipping.getPhone());
+        putIfPresent(billing, "name", delivery.getName());
+        putIfPresent(billing, "email", delivery.getEmail());
+        putIfPresent(billing, "phone", delivery.getPhone());
 
         Map<String, Object> address = new LinkedHashMap<>();
-        putIfPresent(address, "line1", shipping.getAddress());
-        putIfPresent(address, "city", shipping.getCity());
-        putIfPresent(address, "postal_code", shipping.getZip());
+        putIfPresent(address, "line1", delivery.getAddress());
+        putIfPresent(address, "city", delivery.getCity());
+        putIfPresent(address, "postal_code", delivery.getZip());
         address.put("country", "PH");
         billing.put("address", address);
 

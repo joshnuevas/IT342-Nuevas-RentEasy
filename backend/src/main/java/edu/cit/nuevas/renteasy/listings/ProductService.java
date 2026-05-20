@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import edu.cit.nuevas.renteasy.cart.CartItemRepository;
 import edu.cit.nuevas.renteasy.users.User;
 import edu.cit.nuevas.renteasy.users.UserRepository;
 
@@ -13,6 +15,9 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -56,10 +61,12 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
     public void deleteProduct(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new RuntimeException("Product not found");
         }
+        cartItemRepository.deleteByProduct_ProductId(productId);
         productRepository.deleteById(productId);
     }
 }

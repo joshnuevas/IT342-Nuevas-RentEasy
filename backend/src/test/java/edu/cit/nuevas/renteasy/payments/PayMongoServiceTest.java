@@ -27,7 +27,7 @@ class PayMongoServiceTest {
         PaymentCheckoutItem item = new PaymentCheckoutItem();
         item.setName("Camera Kit");
         item.setPrice(BigDecimal.valueOf(1200));
-        item.setQuantity(1);
+        item.setDays(1);
 
         PaymentCheckoutRequest request = new PaymentCheckoutRequest();
         request.setItems(List.of(item));

@@ -20,6 +20,7 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "product_id")
     private Long productId;
 
     private String name;
@@ -28,7 +29,7 @@ public class Product {
     private Integer stock;
     private String category;
     
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
     
     private String status;
@@ -37,7 +38,7 @@ public class Product {
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

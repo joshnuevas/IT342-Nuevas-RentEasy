@@ -1,29 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   BarChart3,
   Box,
   Check,
   Clock,
   LayoutDashboard,
-  LogOut,
   ShoppingCart,
   Users,
   X,
 } from "lucide-react";
 import { getPendingListings as getPendingListingsApi, reviewListing } from "./admin.api";
 import {
-  demoOrders,
-  deleteStoredListing,
   formatCurrency,
   getPendingListings,
   getProfile,
-  getStoredListings,
   getStoredOrders,
   normalizeProduct,
   saveStoredOrders,
-  updateStoredListingStatus,
 } from "../../shared/rentEasyData";
 import { deleteProduct, getAllProducts } from "../listings/listings.api";
 
@@ -37,20 +31,17 @@ const tabs = [
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const { state } = useLocation();
+  const [activeTab, setActiveTab] = useState(state?.activeTab || "dashboard");
   const [remotePending, setRemotePending] = useState([]);
   const [remoteProducts, setRemoteProducts] = useState([]);
-  const [orders, setOrders] = useState(() => [...getStoredOrders(), ...demoOrders]);
+  const [orders, setOrders] = useState(() => getStoredOrders());
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState("");
-  const [, setLocalVersion] = useState(0);
   const token = localStorage.getItem("token");
   const profile = getProfile();
   const pendingItems = getPendingListings(remotePending);
-  const productItems = mergeProducts(
-    remoteProducts.map(normalizeProduct).map((item) => ({ ...item, source: "database" })),
-    getStoredListings().map(normalizeProduct).map((item) => ({ ...item, source: "local" }))
-  );
+  const productItems = mergeProducts(remoteProducts.map(normalizeProduct).map((item) => ({ ...item, source: "database" })));
 
   useEffect(() => {
     let isMounted = true;
@@ -95,28 +86,24 @@ export default function AdminDashboard() {
       const response = await reviewListing(id, status, token);
       if (!response.ok) throw new Error("Review failed.");
     } catch {
-      updateStoredListingStatus(id, status);
+      setNotice("Review failed. Make sure the backend is running and you are logged in.");
+      setTimeout(() => setNotice(""), 2200);
+      return;
     }
 
-    updateStoredListingStatus(id, status);
     setRemotePending((prev) => prev.filter((item) => String(item.productId) !== String(id)));
     setRemoteProducts((prev) =>
       prev.map((item) => (String(item.productId) === String(id) ? { ...item, status } : item))
     );
-    setLocalVersion((version) => version + 1);
     setNotice(status === "APPROVED" ? "Listing approved." : "Listing rejected.");
     setTimeout(() => setNotice(""), 1600);
   };
 
   const handleDeleteProduct = async (item) => {
     try {
-      if (item.source === "database") {
-        const response = await deleteProduct(item.productId, token);
-        if (!response.ok) throw new Error("Delete failed.");
-      }
-      deleteStoredListing(item.productId);
+      const response = await deleteProduct(item.productId, token);
+      if (!response.ok && response.status !== 404) throw new Error("Delete failed.");
       setRemoteProducts((prev) => prev.filter((product) => String(product.productId) !== String(item.productId)));
-      setLocalVersion((version) => version + 1);
       setNotice("Product removed.");
       setTimeout(() => setNotice(""), 1600);
     } catch {
@@ -128,33 +115,28 @@ export default function AdminDashboard() {
   const handleOrderStatus = (orderNumber, status) => {
     const nextOrders = orders.map((order) => (order.orderNumber === orderNumber ? { ...order, status } : order));
     setOrders(nextOrders);
-    saveStoredOrders(nextOrders.filter((order) => !demoOrders.some((demo) => demo.orderNumber === order.orderNumber)));
+    saveStoredOrders(nextOrders);
   };
 
   return (
     <div className="min-h-screen bg-[#F5F2F0] font-sans text-[#4A3428]">
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#D0BCA0] bg-white/95 px-6 shadow-sm backdrop-blur">
-        <button
-          type="button"
-          className="rounded-lg bg-[#4A3428] px-4 py-2 font-black text-white hover:bg-[#3E2B22]"
-          onClick={() => navigate("/home")}
-        >
+      <header className="rent-header-motion sticky top-0 z-40 flex items-center justify-between border-b border-[#D0BCA0] bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
+        <div className="rent-brand-button rounded-lg bg-[#4A3428] px-4 py-2 font-black text-white">
           RentEasy Admin
-        </button>
+        </div>
         <button
           type="button"
           onClick={handleLogout}
-          className="flex h-10 items-center gap-2 rounded-lg border border-[#D0BCA0] px-3 text-sm font-bold text-[#4A3428] hover:border-[#4A3428] hover:bg-[#4A3428] hover:text-white"
+          className="rent-icon-button flex h-10 items-center rounded-lg border border-[#D0BCA0] px-4 text-sm font-bold text-[#4A3428] hover:border-[#4A3428] hover:bg-[#4A3428] hover:text-white"
         >
-          <LogOut size={16} />
           Logout
         </button>
       </header>
 
       <div className="flex min-h-[calc(100vh-4rem)]">
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 border-r border-[#D0BCA0] bg-white p-6 md:block">
+        <aside className="sticky top-[72px] hidden h-[calc(100vh-72px)] w-64 shrink-0 border-r border-[#D0BCA0] bg-white p-6 md:block">
           <div className="mb-8 rounded-lg bg-[#FDFBF9] p-4 text-center ring-1 ring-[#D0BCA0]">
-            <h1 className="text-xl font-black tracking-tight text-[#4A3428]">Admin Panel</h1>
+            <h1 className="text-xl font-black text-[#4A3428]">Admin Panel</h1>
             <p className="mt-2 text-xs font-bold text-[#8C6A48]">{profile.name}</p>
           </div>
 
@@ -174,18 +156,10 @@ export default function AdminDashboard() {
                 {tab.label}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => navigate("/home")}
-              className="mt-8 flex h-11 w-full items-center gap-3 rounded-lg border border-dashed border-[#D0BCA0] px-3 text-sm font-black text-[#8C6A48] hover:bg-[#FDFBF9]"
-            >
-              <ArrowLeft size={18} />
-              Back to Site
-            </button>
           </nav>
         </aside>
 
-        <main className="flex-1 p-6 md:p-8">
+        <main className="rent-page-motion flex-1 p-6 md:p-8">
           <div className="mb-6 flex flex-wrap gap-2 md:hidden">
             {tabs.map((tab) => (
               <button
@@ -219,7 +193,7 @@ export default function AdminDashboard() {
             <ProductsView
               items={productItems}
               isLoading={isLoading}
-              onView={(item) => navigate(`/products/${item.productId}`, { state: { product: item } })}
+              onView={(item) => navigate(`/admin/products/${item.productId}`, { state: { product: item } })}
               onDelete={handleDeleteProduct}
             />
           )}
@@ -414,8 +388,8 @@ function UsersView({ profile }) {
 function Title({ children }) {
   return (
     <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white px-5 py-4 shadow-sm">
-      <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Admin Workspace</p>
-      <h2 className="text-2xl font-black tracking-tight text-[#4A3428]">{children}</h2>
+      <p className="mb-2 text-sm font-black uppercase text-[#4A3428]">Admin Workspace</p>
+      <h2 className="text-2xl font-black text-[#4A3428]">{children}</h2>
     </div>
   );
 }
@@ -429,12 +403,14 @@ function Metric({ label, value }) {
   );
 }
 
-function mergeProducts(remoteProducts, localProducts) {
+function mergeProducts(remoteProducts) {
   const seen = new Set();
-  return [...remoteProducts, ...localProducts].filter((item) => {
+  return remoteProducts.filter((item) => {
     const key = String(item.productId);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 }
+
+

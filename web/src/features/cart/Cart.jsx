@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Image as ImageIcon, Loader2, X } from "lucide-react";
-import { deleteCartItem, getCart, updateCartQuantity } from "./cart.api";
+import { deleteCartItem, getCart, updateCartDays } from "./cart.api";
 import { Page } from "../../shared/RentEasyLayout";
 import {
   calculateCartTotal,
+  cartItemDays,
   currentUserEmail,
   formatCurrency,
-  getLocalCart,
-  removeLocalCartItem,
-  updateLocalCartQuantity,
+  normalizeCartItem,
+  setLocalCart,
 } from "../../shared/rentEasyData";
 
 export default function Cart() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const email = currentUserEmail();
   const token = localStorage.getItem("token");
   const subtotal = calculateCartTotal(items);
@@ -27,13 +28,21 @@ export default function Cart() {
 
     const loadCart = async () => {
       try {
+        if (!token) throw new Error("Missing login token.");
+
         const response = await getCart(email, token);
-        const data = response.ok ? await response.json() : [];
-        const localItems = getLocalCart(email);
-        const nextItems = Array.isArray(data) && data.length > 0 ? data : localItems;
+        if (!response.ok) throw new Error("Unable to load backend cart.");
+
+        const data = await response.json();
+        const nextItems = Array.isArray(data) ? data.map(normalizeCartItem) : [];
+        setLocalCart(nextItems, email);
         if (isMounted) setItems(nextItems);
       } catch {
-        if (isMounted) setItems(getLocalCart(email));
+        setLocalCart([], email);
+        if (isMounted) {
+          setItems([]);
+          setError("Cart could not be loaded from the database. Make sure the backend is running and you are logged in.");
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -46,36 +55,49 @@ export default function Cart() {
     };
   }, [email, token]);
 
-  const updateQty = async (id, quantity) => {
-    if (quantity < 1) return;
+  const updateDays = async (id, days) => {
+    if (days < 1) return;
+    setError("");
 
     try {
-      await updateCartQuantity(id, quantity, token);
+      if (!token) throw new Error("Missing login token.");
+      const response = await updateCartDays(id, days, token);
+      if (!response.ok) throw new Error("Unable to update backend rental days.");
+      setItems((prev) => {
+        const nextItems = prev.map((item) => (String(item.id) === String(id) ? { ...item, days } : item));
+        setLocalCart(nextItems, email);
+        return nextItems;
+      });
     } catch {
-      updateLocalCartQuantity(id, quantity, email);
+      setError("Rental days were not updated in the database. Make sure the backend is running and you are logged in.");
     }
-
-    setItems((prev) => prev.map((item) => (String(item.id) === String(id) ? { ...item, quantity } : item)));
   };
 
   const removeItem = async (id) => {
-    try {
-      await deleteCartItem(id, token);
-    } catch {
-      removeLocalCartItem(id, email);
-    }
+    setError("");
 
-    setItems((prev) => prev.filter((item) => String(item.id) !== String(id)));
+    try {
+      if (!token) throw new Error("Missing login token.");
+      const response = await deleteCartItem(id, token);
+      if (!response.ok && response.status !== 404) throw new Error("Unable to delete backend cart item.");
+      setItems((prev) => {
+        const nextItems = prev.filter((item) => String(item.id) !== String(id));
+        setLocalCart(nextItems, email);
+        return nextItems;
+      });
+    } catch {
+      setError("Item was not removed from the database. Make sure the backend is running and you are logged in.");
+    }
   };
 
   return (
-    <Page cartCount={items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)}>
+    <Page cartCount={items.length}>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 rounded-lg border border-[#D0BCA0] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wide text-[#2F6F62]">Rental Cart</p>
-              <h1 className="text-3xl font-black tracking-tight text-[#4A3428]">Shopping Cart</h1>
+              <p className="mb-2 text-sm font-black uppercase text-[#4A3428]">Rental Cart</p>
+              <h1 className="text-3xl font-black text-[#4A3428]">Shopping Cart</h1>
             </div>
             {items.length > 0 && (
               <span className="w-fit rounded-full bg-[#FDFBF9] px-4 py-2 text-sm font-black text-[#8C6A48] ring-1 ring-[#D0BCA0]">
@@ -84,6 +106,12 @@ export default function Cart() {
             )}
           </div>
         </div>
+
+        {error && (
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            {error}
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center py-20 text-[#8C6A48]">
@@ -107,40 +135,7 @@ export default function Cart() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
               {items.map((item) => (
-                <article key={item.id} className="rent-card-motion flex gap-6 rounded-lg border border-[#D0BCA0] bg-white p-4 shadow-sm">
-                  <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-[#F5F2F0] ring-1 ring-[#D0BCA0]">
-                    {item.product?.imageUrl ? (
-                      <img src={item.product.imageUrl} className="h-full w-full object-cover" alt={item.product.name} />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-[#8C6A48] opacity-40">
-                        <ImageIcon />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <h3 className="mb-2 font-black text-[#4A3428]">{item.product?.name}</h3>
-                    <p className="mb-4 text-sm font-bold text-[#8C6A48]">{formatCurrency(item.product?.price)} / day</p>
-                    <div className="inline-flex items-center overflow-hidden rounded-lg border border-[#D0BCA0] bg-[#FDFBF9]">
-                      <button type="button" className="h-9 w-10 font-bold hover:bg-white" onClick={() => updateQty(item.id, item.quantity - 1)}>
-                        -
-                      </button>
-                      <span className="min-w-10 text-center text-sm font-black">{item.quantity}</span>
-                      <button type="button" className="h-9 w-10 font-bold hover:bg-white" onClick={() => updateQty(item.id, item.quantity + 1)}>
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    className="self-start rounded-lg p-2 text-red-600 hover:bg-red-50"
-                    title="Remove item"
-                  >
-                    <X size={20} />
-                  </button>
-                </article>
+                <CartItemCard key={item.id} item={item} onUpdateDays={updateDays} onRemove={removeItem} />
               ))}
             </div>
 
@@ -155,7 +150,7 @@ export default function Cart() {
               <button
                 type="button"
                 onClick={() => navigate("/checkout", { state: { items } })}
-                className="h-12 w-full rounded-lg bg-[#4A3428] font-black uppercase tracking-wide text-white hover:bg-[#3E2B22]"
+                className="h-12 w-full rounded-lg bg-[#4A3428] font-black uppercase text-white hover:bg-[#3E2B22]"
               >
                 Proceed to Checkout
               </button>
@@ -175,3 +170,47 @@ function Row({ label, value }) {
     </div>
   );
 }
+
+function CartItemCard({ item, onUpdateDays, onRemove }) {
+  const days = cartItemDays(item);
+
+  return (
+    <article className="rent-card-motion flex gap-6 rounded-lg border border-[#D0BCA0] bg-white p-4 shadow-sm">
+      <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg bg-[#F5F2F0] ring-1 ring-[#D0BCA0]">
+        {item.product?.imageUrl ? (
+          <img src={item.product.imageUrl} className="h-full w-full object-cover" alt={item.product.name} />
+        ) : (
+          <div className="flex h-full items-center justify-center text-[#8C6A48] opacity-40">
+            <ImageIcon />
+          </div>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <h3 className="mb-2 font-black text-[#4A3428]">{item.product?.name}</h3>
+        <p className="mb-4 text-sm font-bold text-[#8C6A48]">{formatCurrency(item.product?.price)} / day</p>
+        <p className="mb-2 text-xs font-black uppercase text-[#8C6A48]">Rental days</p>
+        <div className="inline-flex items-center overflow-hidden rounded-lg border border-[#D0BCA0] bg-[#FDFBF9]">
+          <button type="button" className="h-9 w-10 font-bold hover:bg-white" onClick={() => onUpdateDays(item.id, days - 1)}>
+            -
+          </button>
+          <span className="min-w-10 text-center text-sm font-black">{days}</span>
+          <button type="button" className="h-9 w-10 font-bold hover:bg-white" onClick={() => onUpdateDays(item.id, days + 1)}>
+            +
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onRemove(item.id)}
+        className="self-start rounded-lg p-2 text-red-600 hover:bg-red-50"
+        title="Remove item"
+      >
+        <X size={20} />
+      </button>
+    </article>
+  );
+}
+
+

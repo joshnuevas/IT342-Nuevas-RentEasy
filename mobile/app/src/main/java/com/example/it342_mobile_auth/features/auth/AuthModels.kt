@@ -1,12 +1,15 @@
 package com.example.it342_mobile_auth.features.auth
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(val email: String, val password: String)
 
 data class RegisterRequest(
     val firstName: String,
     val lastName: String,
     val email: String,
-    val password: String
+    val password: String,
+    val phone: String? = null
 )
 
 data class UserDto(
@@ -14,7 +17,14 @@ data class UserDto(
     val email: String? = null,
     val firstName: String? = null,
     val lastName: String? = null,
+    val phone: String? = null,
     val role: String? = null
+)
+
+data class UserProfileRequest(
+    val firstName: String,
+    val lastName: String,
+    val phone: String
 )
 
 data class ProductDto(
@@ -46,24 +56,25 @@ data class StatusRequest(val status: String)
 data class CartItemDto(
     val id: Long? = null,
     val product: ProductDto? = null,
-    val quantity: Int? = null,
+    @SerializedName("days")
+    val days: Int? = null,
     val userEmail: String? = null
 )
 
 data class CartAddRequest(val productId: Long, val userEmail: String)
 
-data class QuantityRequest(val quantity: Int)
+data class DaysRequest(val days: Int)
 
 data class PaymentCheckoutItem(
     val productId: Long?,
     val name: String?,
     val description: String?,
     val price: Double?,
-    val quantity: Int,
+    val days: Int,
     val imageUrl: String?
 )
 
-data class PaymentShippingDetails(
+data class PaymentDeliveryDetails(
     val name: String,
     val email: String,
     val phone: String,
@@ -74,11 +85,13 @@ data class PaymentShippingDetails(
 
 data class PaymentCheckoutRequest(
     val orderNumber: String,
-    val shipping: PaymentShippingDetails,
+    val delivery: PaymentDeliveryDetails,
     val subtotal: Double,
     val serviceFee: Double,
     val total: Double,
-    val items: List<PaymentCheckoutItem>
+    val items: List<PaymentCheckoutItem>,
+    val successUrl: String? = null,
+    val cancelUrl: String? = null
 )
 
 data class PaymentCheckoutResponse(
@@ -86,3 +99,23 @@ data class PaymentCheckoutResponse(
     val sessionId: String? = null,
     val referenceNumber: String? = null
 )
+
+data class OrderItemDto(
+    val productId: Long? = null,
+    val productName: String? = null,
+    val price: Double? = null,
+    val days: Int? = null
+)
+
+data class OrderDto(
+    val orderNumber: String? = null,
+    val subtotal: Double? = null,
+    val serviceFee: Double? = null,
+    val total: Double? = null,
+    val status: String? = null,
+    val customerEmail: String? = null,
+    val createdAt: String? = null,
+    val items: List<OrderItemDto>? = null
+)
+
+data class OrderStatusRequest(val status: String)
