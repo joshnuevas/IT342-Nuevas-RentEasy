@@ -3,11 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { AlertCircle, Image as ImageIcon, Loader2, Plus } from "lucide-react";
 import { Page } from "../../shared/RentEasyLayout";
 import {
-  currentUserEmail,
   formatCurrency,
   normalizeProduct,
 } from "../../shared/rentEasyData";
-import { deleteProduct, getAllProducts } from "./listings.api";
+import { deleteProduct, getMyProducts } from "./listings.api";
 
 export default function MyListings() {
   const navigate = useNavigate();
@@ -16,7 +15,6 @@ export default function MyListings() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [removingId, setRemovingId] = useState("");
-  const email = currentUserEmail();
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -27,7 +25,7 @@ export default function MyListings() {
       setError("");
 
       try {
-        const response = await getAllProducts(token);
+        const response = await getMyProducts(token);
         if (!response.ok) throw new Error("Unable to load products.");
 
         const products = await response.json();
@@ -47,16 +45,15 @@ export default function MyListings() {
     return () => {
       isActive = false;
     };
-  }, [email, token]);
+  }, [token]);
 
   const listings = useMemo(() => {
     const ownedDatabaseListings = databaseListings
       .map(normalizeProduct)
-      .filter((item) => belongsToCurrentUser(item, email))
       .map((item) => ({ ...item, source: "database" }));
 
     return mergeListings(ownedDatabaseListings);
-  }, [databaseListings, email]);
+  }, [databaseListings]);
 
   const handleRemove = async (item) => {
     const productId = item.productId;
@@ -175,14 +172,6 @@ export default function MyListings() {
       </section>
     </Page>
   );
-}
-
-function belongsToCurrentUser(item, email) {
-  return ownerEmail(item) === email.toLowerCase();
-}
-
-function ownerEmail(item) {
-  return String(item.owner?.email || item.ownerEmail || item.userEmail || item.email || "").toLowerCase();
 }
 
 function mergeListings(databaseListings) {

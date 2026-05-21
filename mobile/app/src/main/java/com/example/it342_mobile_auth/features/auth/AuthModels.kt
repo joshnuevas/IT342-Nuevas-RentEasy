@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 data class LoginRequest(val email: String, val password: String)
 
+data class GoogleAuthRequest(val idToken: String)
+
 data class RegisterRequest(
     val firstName: String,
     val lastName: String,

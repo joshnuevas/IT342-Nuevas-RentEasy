@@ -57,6 +57,7 @@ core/network
 ### User Features
 
 * User registration and login
+* Google sign-in for regular user accounts
 * JWT-based protected pages and backend endpoints
 * Approved rental catalog
 * Product detail view with owner information
@@ -85,6 +86,7 @@ core/network
 ### Mobile Features
 
 * Android login and registration
+* Google sign-in from the mobile login screen
 * Customer catalog/dashboard
 * Product detail view
 * Add to cart
@@ -140,6 +142,11 @@ core/network
 
 * PayMongo Checkout API
 
+### Google Authentication
+
+* Google Identity Services for web login
+* Google Sign-In for Android login
+
 ### Deployment
 
 * Web frontend: Vercel
@@ -179,6 +186,7 @@ $env:DB_USERNAME="your_database_username"
 $env:DB_PASSWORD="your_database_password"
 $env:PAYMONGO_SECRET_KEY="your_paymongo_test_secret_key"
 $env:APP_FRONTEND_URL="http://localhost:5173"
+$env:GOOGLE_CLIENT_IDS="your_web_client_id.apps.googleusercontent.com"
 ```
 
 Optional:
@@ -215,6 +223,12 @@ npm install
 npm run dev
 ```
 
+For Google sign-in on the web app, create a `.env` file in the `web` folder and set:
+
+```text
+VITE_GOOGLE_CLIENT_ID=your_web_client_id.apps.googleusercontent.com
+```
+
 Local web URL:
 
 ```text
@@ -242,6 +256,18 @@ http://10.0.2.2:8080/
 
 This points the Android emulator to the backend running on the host machine.
 
+For Google sign-in on Android, replace the placeholder value in:
+
+```text
+mobile/app/src/main/res/values/strings.xml
+```
+
+with your Google web client ID:
+
+```xml
+<string name="google_web_client_id">your_web_client_id.apps.googleusercontent.com</string>
+```
+
 ## API Endpoints
 
 Base URL for local development:
@@ -255,9 +281,10 @@ http://localhost:8080
 ```text
 POST /api/auth/register
 POST /api/auth/login
+POST /api/auth/google
 ```
 
-Logout is handled on the frontend/mobile side by clearing the saved token. There is no backend logout endpoint in the current implementation.
+Google sign-in is available for regular user accounts only. Admin login remains email/password only. Logout is handled on the frontend/mobile side by clearing the saved token. There is no backend logout endpoint in the current implementation.
 
 ### User Profile
 

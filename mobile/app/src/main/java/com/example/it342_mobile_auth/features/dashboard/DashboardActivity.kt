@@ -409,8 +409,8 @@ class DashboardActivity : AppCompatActivity() {
         showLoading("Loading your listings...")
         lifecycleScope.launch {
             try {
-                val response = api.getAllProducts(authHeader())
-                val listings = response.body().orEmpty().filter { ownerEmail(it) == email.lowercase() }
+                val response = api.getMyProducts(authHeader())
+                val listings = response.body().orEmpty()
                 renderMyListings(listings)
             } catch (exception: Exception) {
                 showError("Your listings could not be loaded.")

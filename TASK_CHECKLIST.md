@@ -24,6 +24,7 @@ This checklist reflects the current RentEasy implementation across the web app, 
 * [x] CORS configured for local and deployed frontend URLs
 * [x] User registration endpoint implemented: `POST /api/auth/register`
 * [x] User/admin login endpoint implemented: `POST /api/auth/login`
+* [x] Google login endpoint implemented for regular users: `POST /api/auth/google`
 * [x] Separate `admins` table implemented for admin accounts
 * [x] Admin seeding implemented
 * [x] Protected user endpoint implemented: `GET /api/user/me`
@@ -75,6 +76,7 @@ This checklist reflects the current RentEasy implementation across the web app, 
 * [x] Tailwind CSS styling implemented
 * [x] Brown RentEasy visual theme applied
 * [x] Login page implemented
+* [x] Google sign-in button added to the web login page
 * [x] Register page implemented
 * [x] Frontend logout implemented by clearing saved session data
 * [x] Protected user routes implemented
@@ -111,6 +113,7 @@ This checklist reflects the current RentEasy implementation across the web app, 
 * [x] Android/Kotlin mobile app implemented
 * [x] Retrofit client configured for backend API calls
 * [x] Login screen implemented
+* [x] Google sign-in button added to the mobile login screen
 * [x] Register screen implemented
 * [x] Customer dashboard/catalog implemented
 * [x] Product detail view implemented

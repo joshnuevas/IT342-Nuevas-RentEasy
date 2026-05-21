@@ -10,6 +10,12 @@ export function getAllProducts(token) {
   });
 }
 
+export function getMyProducts(token) {
+  return apiFetch("/api/products/mine", {
+    headers: authHeaders(token),
+  });
+}
+
 export function getPendingProducts(token) {
   return apiFetch("/api/products/pending", {
     headers: authHeaders(token),

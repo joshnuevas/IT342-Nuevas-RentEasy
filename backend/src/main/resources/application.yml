@@ -28,5 +28,8 @@ paymongo:
   secret-key: ${PAYMONGO_SECRET_KEY:}
   payment-methods: ${PAYMONGO_PAYMENT_METHODS:card,gcash}
 
+google:
+  client-ids: ${GOOGLE_CLIENT_IDS:}
+
 server:
   port: ${PORT:8080}

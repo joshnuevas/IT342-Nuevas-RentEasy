@@ -13,7 +13,34 @@ export function formatCurrency(value) {
 }
 
 export function currentUserEmail() {
+  const tokenEmail = emailFromJwt(localStorage.getItem("token"));
+  if (tokenEmail) {
+    localStorage.setItem("userEmail", tokenEmail);
+    return tokenEmail;
+  }
+
   return localStorage.getItem("userEmail") || "student@example.com";
+}
+
+function emailFromJwt(token) {
+  if (!token) return "";
+
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return "";
+
+    const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
+    const decoded = decodeURIComponent(
+      atob(padded)
+        .split("")
+        .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join("")
+    );
+
+    return JSON.parse(decoded).sub || "";
+  } catch {
+    return "";
+  }
 }
 
 export function userInitials(email = currentUserEmail()) {

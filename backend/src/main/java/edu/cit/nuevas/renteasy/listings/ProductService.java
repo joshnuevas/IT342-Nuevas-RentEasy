@@ -23,7 +23,15 @@ public class ProductService {
     private UserRepository userRepository;
 
     public Product addProduct(ProductRequest request) {
-        User owner = userRepository.findByEmail(request.getOwnerEmail())
+        return addProduct(request, request.getOwnerEmail());
+    }
+
+    public Product addProduct(ProductRequest request, String authenticatedOwnerEmail) {
+        String ownerEmail = authenticatedOwnerEmail == null || authenticatedOwnerEmail.isBlank()
+                ? request.getOwnerEmail()
+                : authenticatedOwnerEmail;
+
+        User owner = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Product product = new Product();
@@ -52,6 +60,10 @@ public class ProductService {
 
     public List<Product> getPendingProducts() {
         return productRepository.findByStatus("PENDING");
+    }
+
+    public List<Product> getProductsForOwner(String ownerEmail) {
+        return productRepository.findByOwner_EmailIgnoreCase(ownerEmail);
     }
 
     public Product updateProductStatus(Long id, String status) {

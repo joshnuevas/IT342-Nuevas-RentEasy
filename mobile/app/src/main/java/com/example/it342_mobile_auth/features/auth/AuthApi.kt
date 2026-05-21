@@ -18,6 +18,9 @@ interface AuthApi {
     @POST("/api/auth/login")
     suspend fun loginUser(@Body request: LoginRequest): Response<ResponseBody>
 
+    @POST("/api/auth/google")
+    suspend fun loginWithGoogle(@Body request: GoogleAuthRequest): Response<ResponseBody>
+
     @GET("/api/user/profile")
     suspend fun getProfile(@Header("Authorization") token: String): Response<UserDto>
 
@@ -32,6 +35,9 @@ interface AuthApi {
 
     @GET("/api/products")
     suspend fun getAllProducts(@Header("Authorization") token: String): Response<List<ProductDto>>
+
+    @GET("/api/products/mine")
+    suspend fun getMyProducts(@Header("Authorization") token: String): Response<List<ProductDto>>
 
     @GET("/api/products/pending")
     suspend fun getPendingProducts(@Header("Authorization") token: String): Response<List<ProductDto>>
