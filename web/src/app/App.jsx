@@ -11,6 +11,7 @@ import Cart from "../features/cart/Cart";
 import Checkout from "../features/checkout/Checkout";
 import OrderConfirmation from "../features/checkout/OrderConfirmation";
 import Profile from "../features/profile/Profile";
+import RenterProfile from "../features/profile/RenterProfile";
 import ProtectedRoute from "../shared/ProtectedRoute";
 
 function App() {
@@ -61,6 +62,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/renters/:renterId"
+          element={
+            <ProtectedRoute>
+              <RenterProfile />
             </ProtectedRoute>
           }
         />

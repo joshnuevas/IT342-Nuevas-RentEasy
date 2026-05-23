@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Image as ImageIcon, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Eye, Image as ImageIcon, ShoppingCart } from "lucide-react";
 import { addCartItem, getCart } from "../cart/cart.api";
 import { getAllProducts } from "./listings.api";
 import { Page } from "../../shared/RentEasyLayout";
@@ -122,7 +122,22 @@ export default function ProductDetail() {
               <Row label="Price" value={`${formatCurrency(product.price)} / day`} />
               <Row label="Stock" value={product.stock} />
               <Row label="Status" value={product.status} />
-              <Row label="Added by" value={ownerName(product)} />
+              <Row
+                label="Added by"
+                value={(
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/renters/${ownerProfileKey(product)}`, {
+                      state: { owner: product.owner, productName: product.name },
+                    })}
+                    className="inline-flex items-center justify-end gap-2 rounded-full px-2 py-1 font-bold text-[#8C6A48] hover:bg-[#FDFBF9] hover:text-[#4A3428]"
+                    aria-label={`View ${ownerName(product)} profile`}
+                  >
+                    <Eye className="h-4 w-4" />
+                    {ownerName(product)}
+                  </button>
+                )}
+              />
               <Row label="Owner phone" value={ownerPhone(product)} />
               <Row label="Owner email" value={ownerEmail(product) || "Not provided"} />
             </div>
@@ -172,5 +187,9 @@ function ownerName(product) {
 
 function ownerPhone(product) {
   return product?.owner?.phone || product?.ownerPhone || "Not provided";
+}
+
+function ownerProfileKey(product) {
+  return encodeURIComponent(product?.owner?.userID || product?.owner?.userId || ownerEmail(product) || "unknown");
 }
 

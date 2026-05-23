@@ -72,6 +72,9 @@ class DashboardActivity : AppCompatActivity() {
     private var selectedListingImageDataUrl = ""
     private var listingImagePreview: ImageView? = null
     private var listingImageStatus: TextView? = null
+    private var selectedProfileImageDataUrl = ""
+    private var profileImagePreview: ImageView? = null
+    private var profileImageStatus: TextView? = null
 
     private val api = RetrofitClient.instance
     private val categories = listOf("Cameras", "Tools", "Audio", "Outdoor", "Events")
@@ -108,6 +111,24 @@ class DashboardActivity : AppCompatActivity() {
                 visibility = View.VISIBLE
             }
             listingImageStatus?.text = "Photo selected and compressed"
+        }
+    }
+
+    private val profileImagePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) { loadPickedImage(uri) }
+            if (result == null) {
+                Toast.makeText(this@DashboardActivity, "Profile photo could not be loaded", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            selectedProfileImageDataUrl = result.dataUrl
+            profileImagePreview?.apply {
+                setImageBitmap(result.bitmap)
+                visibility = View.VISIBLE
+            }
+            profileImageStatus?.text = "Profile photo selected"
         }
     }
 
@@ -373,7 +394,9 @@ class DashboardActivity : AppCompatActivity() {
             addView(infoRow("Price", "${money(product.price)} / day"))
             addView(infoRow("Stock", product.stock?.toString() ?: "0"))
             addView(infoRow("Status", product.status ?: "APPROVED"))
-            addView(infoRow("Added by", ownerName(product)))
+            addView(infoActionRow("Added by", ownerName(product)) {
+                showOwnerProfile(product) { showProductDetail(product, backAction, adminMode) }
+            })
             addView(infoRow("Owner phone", ownerPhone(product)))
             addView(infoRow("Owner email", ownerDisplayEmail(product)))
             if (!adminMode) {
@@ -548,6 +571,85 @@ class DashboardActivity : AppCompatActivity() {
                     listingImageStatus?.text = "No photo selected"
                 }
             ))
+        }
+    }
+
+    private fun showOwnerProfile(product: ProductDto, backAction: () -> Unit) {
+        clearContent()
+        content.addView(button("Back to Product", false) { backAction() }, fullWidthButtonParams())
+        content.addView(spacer(8))
+        titleCard("Renter Account", "Renter Profile")
+        val ownerEmailValue = ownerEmail(product)
+
+        content.addView(card().apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            addView(TextView(context).apply {
+                text = profileInitials(ownerName(product))
+                gravity = Gravity.CENTER
+                textSize = 30f
+                setTypeface(Typeface.DEFAULT, Typeface.BOLD)
+                setTextColor(Color.WHITE)
+                background = rounded(brown, dp(16))
+            }, LinearLayout.LayoutParams(dp(96), dp(96)).apply {
+                bottomMargin = dp(14)
+            })
+            addView(title(ownerName(product), 22f))
+            addView(body(ownerDisplayEmail(product)))
+        })
+
+        content.addView(formCard().apply {
+            addView(title("Profile Information", 18f))
+            addView(infoRow("Name", ownerName(product)))
+            addView(infoRow("Email", ownerDisplayEmail(product)))
+            addView(infoRow("Phone", ownerPhone(product)))
+        })
+
+        val listingsCard = card()
+        content.addView(listingsCard)
+        renderOwnerApprovedListings(listingsCard, listOf(product).filter { (it.status ?: "APPROVED") == "APPROVED" })
+
+        lifecycleScope.launch {
+            try {
+                val response = api.getApprovedProducts()
+                val ownerListings = response.body().orEmpty()
+                    .filter { ownerEmail(it) == ownerEmailValue }
+                renderOwnerApprovedListings(listingsCard, ownerListings)
+            } catch (_: Exception) {
+                renderOwnerApprovedListings(listingsCard, emptyList())
+            }
+        }
+    }
+
+    private fun renderOwnerApprovedListings(target: LinearLayout, listings: List<ProductDto>) {
+        target.removeAllViews()
+        target.addView(title("Approved Listings", 18f))
+
+        if (listings.isEmpty()) {
+            target.addView(body("No approved listings found for this renter."))
+            return
+        }
+
+        listings.forEach { listing ->
+            target.addView(LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12), dp(12), dp(12), dp(12))
+                background = rounded(soft, dp(12), line, 1)
+                addView(TextView(context).apply {
+                    text = listing.name.orEmpty()
+                    setTextColor(brown)
+                    textSize = 15f
+                    setTypeface(Typeface.DEFAULT, Typeface.BOLD)
+                })
+                addView(TextView(context).apply {
+                    text = "${listing.category.orEmpty()} - ${money(listing.price)} / day"
+                    setTextColor(caramel)
+                    textSize = 13f
+                    setPadding(0, dp(4), 0, 0)
+                })
+            }, LinearLayout.LayoutParams(match, wrap).apply {
+                bottomMargin = dp(10)
+            })
         }
     }
 
@@ -775,6 +877,9 @@ class DashboardActivity : AppCompatActivity() {
         clearContent()
         titleCard("Account", "User Profile")
         val profile = currentProfile()
+        selectedProfileImageDataUrl = profile.avatarUrl
+        profileImagePreview = null
+        profileImageStatus = null
 
         val name = input("Name", "Enter full name", profile.name)
         val profileEmail = input("Email", "Enter email address", profile.email)
@@ -793,6 +898,8 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
+        content.addView(profilePhotoCard(profile))
+
         content.addView(formCard().apply {
             addView(name)
             addView(profileEmail)
@@ -808,6 +915,7 @@ class DashboardActivity : AppCompatActivity() {
                     .putString("profile_address", address.text.toString())
                     .putString("profile_city", city.text.toString())
                     .putString("profile_zip", zip.text.toString())
+                    .putString("profile_avatar_url", selectedProfileImageDataUrl)
                     .apply()
                 saveRemoteProfile(name.text.toString(), phone.text.toString())
                 Toast.makeText(this@DashboardActivity, "Profile saved", Toast.LENGTH_SHORT).show()
@@ -824,6 +932,58 @@ class DashboardActivity : AppCompatActivity() {
                 cacheOrders(remoteOrders)
                 renderOrderHistory(orderCard, remoteOrders, "No orders found in the database yet.")
             }
+        }
+    }
+
+    private fun profilePhotoCard(profile: MobileProfile): View {
+        return card().apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+
+            val holder = FrameLayout(context).apply {
+                background = rounded(brown, dp(16))
+                clipToOutline = true
+            }
+            val fallback = TextView(context).apply {
+                text = profileInitials(profile.name)
+                gravity = Gravity.CENTER
+                textSize = 30f
+                setTypeface(Typeface.DEFAULT, Typeface.BOLD)
+                setTextColor(Color.WHITE)
+            }
+            val preview = ImageView(context).apply {
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                visibility = View.GONE
+            }
+            profileImagePreview = preview
+            holder.addView(fallback, FrameLayout.LayoutParams(match, match))
+            holder.addView(preview, FrameLayout.LayoutParams(match, match))
+            addView(holder, LinearLayout.LayoutParams(dp(104), dp(104)).apply {
+                bottomMargin = dp(12)
+            })
+
+            decodeDataUrlBitmap(profile.avatarUrl)?.let {
+                preview.setImageBitmap(it)
+                preview.visibility = View.VISIBLE
+            }
+
+            profileImageStatus = TextView(context).apply {
+                text = if (profile.avatarUrl.isBlank()) "No profile photo selected" else "Profile photo selected"
+                textSize = 13f
+                setTextColor(caramel)
+                gravity = Gravity.CENTER
+                setPadding(0, 0, 0, dp(8))
+            }
+            addView(profileImageStatus)
+
+            addView(rowButtons(
+                button("Choose Photo", true) { profileImagePicker.launch("image/*") },
+                button("Clear", false, danger) {
+                    selectedProfileImageDataUrl = ""
+                    profileImagePreview?.visibility = View.GONE
+                    profileImageStatus?.text = "No profile photo selected"
+                }
+            ))
         }
     }
 
@@ -997,6 +1157,15 @@ class DashboardActivity : AppCompatActivity() {
             .ifBlank { "Not provided" }
     }
 
+    private fun profileInitials(name: String): String {
+        return name.split(" ")
+            .filter { it.isNotBlank() }
+            .take(2)
+            .mapNotNull { it.firstOrNull()?.uppercaseChar()?.toString() }
+            .joinToString("")
+            .ifBlank { "R" }
+    }
+
     private suspend fun loadRemoteProfile(): UserDto? {
         return try {
             val response = api.getProfile(authHeader())
@@ -1081,7 +1250,8 @@ class DashboardActivity : AppCompatActivity() {
             phone = prefs.getString("profile_phone", "") ?: "",
             address = prefs.getString("profile_address", "") ?: "",
             city = prefs.getString("profile_city", "Cebu City") ?: "Cebu City",
-            zip = prefs.getString("profile_zip", "") ?: ""
+            zip = prefs.getString("profile_zip", "") ?: "",
+            avatarUrl = prefs.getString("profile_avatar_url", "") ?: ""
         )
     }
 
@@ -1264,6 +1434,16 @@ class DashboardActivity : AppCompatActivity() {
         return PickedListingImage(bitmap, "data:image/jpeg;base64,$base64")
     }
 
+    private fun decodeDataUrlBitmap(dataUrl: String): Bitmap? {
+        if (!dataUrl.startsWith("data:image", ignoreCase = true)) return null
+        return try {
+            val bytes = Base64.decode(dataUrl.substringAfter(","), Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun listingSubmitError(statusCode: Int, details: String?): String {
         if (statusCode >= 500) {
             return "Listing image could not be saved. In Supabase, set products.image_url to text."
@@ -1438,6 +1618,42 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
+    private fun infoActionRow(label: String, value: String, action: () -> Unit): View {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(7), 0, dp(7))
+            addView(TextView(context).apply {
+                text = label
+                setTextColor(caramel)
+                textSize = 13f
+            }, LinearLayout.LayoutParams(0, wrap, 1f))
+            addView(LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL or Gravity.END
+                addView(TextView(context).apply {
+                    text = value
+                    setTextColor(brown)
+                    textSize = 13f
+                    setTypeface(Typeface.DEFAULT, Typeface.BOLD)
+                    gravity = Gravity.END
+                }, LinearLayout.LayoutParams(0, wrap, 1f))
+                addView(Button(context).apply {
+                    text = ""
+                    contentDescription = "View owner profile"
+                    minHeight = 0
+                    minWidth = 0
+                    setPadding(0, 0, 0, 0)
+                    setCompoundDrawablesWithIntrinsicBounds(android.R.drawable.ic_menu_view, 0, 0, 0)
+                    background = rounded(Color.TRANSPARENT, dp(10), line, 1)
+                    setOnClickListener { action() }
+                }, LinearLayout.LayoutParams(dp(36), dp(32)).apply {
+                    leftMargin = dp(8)
+                })
+            }, LinearLayout.LayoutParams(0, wrap, 1f))
+        }
+    }
+
     private fun input(label: String, hint: String, value: String, inputType: Int = InputType.TYPE_CLASS_TEXT): EditText {
         return EditText(this).apply {
             this.hint = if (hint.isBlank() || hint == label) label else hint
@@ -1546,7 +1762,8 @@ class DashboardActivity : AppCompatActivity() {
         val phone: String,
         val address: String,
         val city: String,
-        val zip: String
+        val zip: String,
+        val avatarUrl: String
     )
 
     data class MobileOrder(
