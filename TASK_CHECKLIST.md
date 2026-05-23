@@ -34,6 +34,8 @@ This checklist reflects the current RentEasy implementation across the web app, 
 * [x] Product listing retrieval endpoint implemented: `GET /api/products`
 * [x] Approved product retrieval endpoint implemented: `GET /api/products/all-approved`
 * [x] Pending product retrieval endpoint implemented: `GET /api/products/pending`
+* [x] Authenticated owner listing retrieval implemented: `GET /api/products/mine`
+* [x] Product listing ownership is assigned from the authenticated JWT token
 * [x] Product approval/rejection endpoint implemented: `PUT /api/products/{id}/status`
 * [x] Product deletion endpoint implemented: `DELETE /api/products/{id}`
 * [x] Product deletion also removes related cart items
@@ -114,6 +116,8 @@ This checklist reflects the current RentEasy implementation across the web app, 
 * [x] Retrofit client configured for backend API calls
 * [x] Login screen implemented
 * [x] Google sign-in button added to the mobile login screen
+* [x] Mobile Google sign-in configured with Google Play Services Auth
+* [x] Android OAuth client setup documented with package name and SHA-1 requirement
 * [x] Register screen implemented
 * [x] Customer dashboard/catalog implemented
 * [x] Product detail view implemented
@@ -136,6 +140,7 @@ This checklist reflects the current RentEasy implementation across the web app, 
 
 * [x] System Design Document updated
 * [x] API contract updated to match actual backend endpoints
+* [x] Google authentication endpoint and owner listings endpoint documented
 * [x] Functional requirements updated to match implemented features
 * [x] Non-functional requirements updated without unsupported performance claims
 * [x] Technology stack updated to match the codebase
@@ -160,7 +165,7 @@ These items are not part of the current final implementation.
 * Backend logout endpoint
 * Backend search endpoint
 * Forgot password flow
-* Social login
+* Third-party login for admin accounts
 * Email notifications
 * Wishlist or saved items
 * Product edit form for existing listings

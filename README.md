@@ -63,7 +63,7 @@ core/network
 * Product detail view with owner information
 * Frontend product search/filtering
 * Product listing submission
-* My Listings page
+* My Listings page backed by authenticated owner lookup
 * Cart add, view, remove, and rental days update
 * Checkout form with delivery/contact details
 * PayMongo checkout redirect
@@ -146,6 +146,7 @@ core/network
 
 * Google Identity Services for web login
 * Google Sign-In for Android login
+* Google ID token verification in the Spring Boot backend
 
 ### Deployment
 
@@ -268,6 +269,15 @@ with your Google web client ID:
 <string name="google_web_client_id">your_web_client_id.apps.googleusercontent.com</string>
 ```
 
+The Android OAuth client in Google Cloud must also be configured with:
+
+```text
+Package name: com.example.it342_mobile_auth
+SHA-1: your Android debug or release signing certificate fingerprint
+```
+
+The Android OAuth client is used by Google to recognize the installed app. The app still uses the web client ID in `google_web_client_id` to request the ID token that the backend verifies.
+
 ## API Endpoints
 
 Base URL for local development:
@@ -300,12 +310,15 @@ PUT /api/user/profile
 GET /api/products
 GET /api/products/all-approved
 GET /api/products/pending
+GET /api/products/mine
 POST /api/products
 PUT /api/products/{id}/status
 DELETE /api/products/{id}
 ```
 
 Search/filtering is handled on the frontend using loaded catalog data. There is no backend search endpoint in the current implementation.
+
+`POST /api/products` assigns the product owner from the authenticated JWT token. The frontend and mobile app do not decide the owner in the request payload.
 
 ### Cart
 
@@ -344,7 +357,7 @@ These features are not part of the current final implementation:
 * Backend logout endpoint
 * Backend search endpoint
 * Forgot password flow
-* Social login
+* Third-party login for admin accounts
 * Email notifications
 * Wishlist or saved items
 * Product edit form for existing listings
