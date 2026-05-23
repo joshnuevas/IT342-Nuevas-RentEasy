@@ -19,6 +19,7 @@ import com.example.it342_mobile_auth.features.dashboard.DashboardActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -37,7 +38,8 @@ class MainActivity : AppCompatActivity() {
             }
             loginWithGoogleToken(idToken, account.email.orEmpty())
         } catch (exception: ApiException) {
-            Toast.makeText(this, "Google sign-in cancelled or failed", Toast.LENGTH_SHORT).show()
+            val status = GoogleSignInStatusCodes.getStatusCodeString(exception.statusCode)
+            Toast.makeText(this, "Google sign-in failed: $status", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         val etEmail = findViewById<EditText>(R.id.etLoginEmail)
         val etPass = findViewById<EditText>(R.id.etLoginPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val btnGoogleLogin = findViewById<Button>(R.id.btnGoogleLogin)
+        val btnGoogleLogin = findViewById<TextView>(R.id.btnGoogleLogin)
         val btnRegister = findViewById<TextView>(R.id.btnGoToRegister)
         val googleOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()

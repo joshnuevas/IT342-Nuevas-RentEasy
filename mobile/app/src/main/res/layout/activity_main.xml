@@ -158,17 +158,15 @@
                     android:background="@color/renteasy_line" />
             </LinearLayout>
 
-            <Button
+            <TextView
                 android:id="@+id/btnGoogleLogin"
                 android:layout_width="match_parent"
                 android:layout_height="46dp"
                 android:background="@drawable/renteasy_outline_button"
-                android:backgroundTint="@android:color/transparent"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:stateListAnimator="@null"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
                 android:text="Continue with Google"
-                android:textAllCaps="false"
                 android:textColor="@color/renteasy_brown"
                 android:textSize="14sp"
                 android:textStyle="bold" />
