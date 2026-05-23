@@ -1,101 +1,67 @@
 # RentEasy
 
-RentEasy is a rental marketplace system for browsing, listing, approving, renting, and tracking rental items through a React web app, Android Kotlin mobile app, Spring Boot backend, Supabase PostgreSQL database, and PayMongo checkout integration.
+RentEasy is a rental marketplace for browsing, listing, approving, renting, and tracking rental items. The project is built with a Spring Boot backend, React/Vite web frontend, Android Kotlin mobile app, Supabase PostgreSQL database, and PayMongo checkout integration.
 
-The project supports regular users and administrators. Regular users can register, log in, browse approved listings, view product details, add products to a cart, set rental days, submit listings for approval, update profile information, and complete checkout through PayMongo. Administrators use a separate admin account flow to review pending listings, approve or reject products, remove products, view orders, and manage admin-side product/order views.
+The final implementation supports two account areas:
 
-## Project Structure
+* Regular users can register, log in with email/password or Google, browse approved listings, view product details, add items to cart, set rental days, submit rental listings, update profile details, and complete checkout through PayMongo.
+* Admin users log in through the separate admin account flow and can review pending listings, approve or reject products, delete products, view orders, and manage admin-side product/order pages.
+
+## Project Layout
 
 ```text
 IT342-Nuevas-RentEasy/
   backend/   Spring Boot REST API
-  web/       React/Vite web frontend
-  mobile/    Android Kotlin mobile app
-  docs/      Documentation and test evidence
+  web/       React/Vite web application
+  mobile/    Android Kotlin mobile application
+  docs/      System design document and project documentation
 ```
 
-## Feature Organization
+## Final Feature Summary
 
-The codebase is organized around feature areas.
+### Authentication
 
-Backend packages:
+* Email/password registration and login for regular users.
+* Email/password login for admin accounts.
+* Google sign-in for regular users on the web and mobile apps.
+* Google ID tokens are verified by the Spring Boot backend before a RentEasy JWT is issued.
+* Admin accounts do not use Google sign-in.
+* Logout is handled by clearing the saved token on the frontend/mobile side.
 
-```text
-auth
-users
-admin
-listings
-cart
-orders
-payments
-core
-```
+### Product Listings
 
-Web feature folders:
+* Approved rental catalog.
+* Product detail page with product information and owner details.
+* User listing submission.
+* New listings start as `PENDING`.
+* Admin approval/rejection changes product status.
+* My Listings is loaded from `GET /api/products/mine`.
+* Product ownership is assigned from the authenticated JWT token, not from a frontend request field.
 
-```text
-features/auth
-features/listings
-features/cart
-features/checkout
-features/profile
-features/admin
-shared
-app
-```
+### Cart, Checkout, and Orders
 
-Mobile feature folders:
+* Add products to cart.
+* View cart items.
+* Update rental days.
+* Remove cart items.
+* Checkout form uses delivery/contact details.
+* PayMongo checkout session creation.
+* Mobile PayMongo success/cancel redirect support.
+* Rental orders and rental order items are stored in the backend database.
+* User order history and admin order management are backed by the database.
 
-```text
-features/auth
-features/dashboard
-core/network
-```
+### Profile
 
-## Main Features
+* Backend profile view and update for name and phone.
+* Web profile picture change is handled on the frontend.
+* Profile picture upload to backend/Supabase Storage is not part of the current implementation.
 
-### User Features
+### Mobile
 
-* User registration and login
-* Google sign-in for regular user accounts
-* JWT-based protected pages and backend endpoints
-* Approved rental catalog
-* Product detail view with owner information
-* Frontend product search/filtering
-* Product listing submission
-* My Listings page backed by authenticated owner lookup
-* Cart add, view, remove, and rental days update
-* Checkout form with delivery/contact details
-* PayMongo checkout redirect
-* Order confirmation and order history
-* Profile name and phone update through backend
-* Frontend profile picture change
-
-### Admin Features
-
-* Separate admin accounts stored in the `admins` table
-* Admin dashboard
-* Product management
-* Pending listing approval/rejection
-* Product deletion
-* Admin product detail view
-* Rental order viewing
-* Order status update
-* User/admin summary view
-
-### Mobile Features
-
-* Android login and registration
-* Google sign-in from the mobile login screen
-* Customer catalog/dashboard
-* Product detail view
-* Add to cart
-* Cart rental day update and item removal
-* Listing submission with mobile image selection support
-* Profile view/update
-* PayMongo checkout request and mobile return redirect
-* Backend order history
-* Admin mobile area limited to admin features
+* Android login and registration.
+* Android Google sign-in through Google Play Services Auth.
+* Catalog, product detail, cart, listing submission, profile, checkout, order history, and admin area.
+* Emulator backend URL uses `http://10.0.2.2:8080/`.
 
 ## Technology Stack
 
@@ -109,14 +75,14 @@ core/network
 * Hibernate
 * PostgreSQL JDBC Driver
 * JJWT 0.11.5
-* BCrypt password hashing
+* BCrypt
 * Maven
 
 ### Database
 
 * Supabase PostgreSQL
 
-### Web Frontend
+### Web
 
 * React 19
 * Vite 7
@@ -124,36 +90,28 @@ core/network
 * React Router
 * Tailwind CSS
 * Lucide React
+* Google Identity Services
 * npm
 
-### Mobile App
+### Mobile
 
-* Android native app
-* Kotlin
-* XML/AppCompat-based Android UI
+* Android Kotlin
+* XML/AppCompat UI
 * Material Components
 * Retrofit 2.9.0
 * Gson Converter
 * Kotlin Coroutines
 * AndroidX Lifecycle
+* Google Play Services Auth
 * Gradle
 
-### Payments
+### Payments and Deployment
 
 * PayMongo Checkout API
-
-### Google Authentication
-
-* Google Identity Services for web login
-* Google Sign-In for Android login
-* Google ID token verification in the Spring Boot backend
-
-### Deployment
-
-* Web frontend: Vercel
-* Backend: Render
-* Database: Supabase PostgreSQL
-* Mobile: APK build/distribution
+* Web frontend deployed on Vercel
+* Backend deployed on Render
+* Database hosted on Supabase
+* Mobile distributed as an APK
 
 ## Database Tables
 
@@ -166,37 +124,77 @@ rental_orders
 rental_order_items
 ```
 
-Key table notes:
+Important table notes:
 
-* `users` stores regular customer accounts.
+* `users` stores regular customer accounts, including Google-authenticated users.
 * `admins` stores administrator accounts separately from regular users.
-* `products` stores rental listings and references the owner through `owner_id`.
-* `cart_items` stores selected products per user and uses `days` for rental duration.
-* `cart_items` uses `cart_item_id` as its primary key.
+* `products.owner_id` links a listing to the user who created it.
+* `cart_items.cart_item_id` is the cart item primary key.
+* `cart_items.days` stores the rental duration.
 * `rental_orders` stores checkout/order records and delivery details.
-* `rental_order_items` stores individual products included in an order.
+* `rental_order_items` stores ordered product line items.
 * Delivery columns use `delivery_*` naming instead of `shipping_*`.
 
-## Backend Environment Variables
+## Environment Setup
 
-The backend requires these environment variables:
+### Backend Environment Variables
+
+Set these before running the backend locally or in Render:
 
 ```powershell
 $env:DATABASE_URL="your_supabase_database_url"
 $env:DB_USERNAME="your_database_username"
 $env:DB_PASSWORD="your_database_password"
 $env:PAYMONGO_SECRET_KEY="your_paymongo_test_secret_key"
+$env:PAYMONGO_PAYMENT_METHODS="card,gcash"
 $env:APP_FRONTEND_URL="http://localhost:5173"
 $env:GOOGLE_CLIENT_IDS="your_web_client_id.apps.googleusercontent.com"
 ```
 
-Optional:
+`GOOGLE_CLIENT_IDS` must contain the web OAuth client ID that the web and mobile apps use when requesting Google ID tokens.
 
-```powershell
-$env:PAYMONGO_PAYMENT_METHODS="card,gcash"
+### Web Environment Variables
+
+Create `web/.env` locally:
+
+```text
+VITE_API_BASE_URL=http://localhost:8080
+VITE_GOOGLE_CLIENT_ID=your_web_client_id.apps.googleusercontent.com
 ```
 
-## Run the Backend
+For Vercel, add the same values in the Vercel Environment Variables page, using the deployed backend URL for `VITE_API_BASE_URL`.
+
+### Mobile Google Sign-In Setup
+
+The Android app must keep the web client ID in:
+
+```text
+mobile/app/src/main/res/values/strings.xml
+```
+
+```xml
+<string name="google_web_client_id">your_web_client_id.apps.googleusercontent.com</string>
+```
+
+In Google Cloud, create an Android OAuth client with:
+
+```text
+Package name: com.example.it342_mobile_auth
+SHA-1: your Android debug or release signing certificate fingerprint
+```
+
+Use this command to get the debug SHA-1:
+
+```powershell
+cd mobile
+.\gradlew.bat signingReport
+```
+
+The Android OAuth client is used by Google to verify the installed app. The app still uses the web client ID in `google_web_client_id`.
+
+## Running the Project
+
+### Backend
 
 ```bash
 cd backend
@@ -204,19 +202,19 @@ mvn clean test
 mvn spring-boot:run
 ```
 
-Local backend URL:
+Local backend:
 
 ```text
 http://localhost:8080
 ```
 
-Production backend URL:
+Production backend:
 
 ```text
 https://it342-nuevas-renteasy-1.onrender.com
 ```
 
-## Run the Web App
+### Web
 
 ```bash
 cd web
@@ -224,59 +222,26 @@ npm install
 npm run dev
 ```
 
-For Google sign-in on the web app, create a `.env` file in the `web` folder and set:
-
-```text
-VITE_GOOGLE_CLIENT_ID=your_web_client_id.apps.googleusercontent.com
-```
-
-Local web URL:
+Local web app:
 
 ```text
 http://localhost:5173
 ```
 
-Build for production:
+Production build:
 
 ```bash
 npm run build
 ```
 
-## Run the Mobile App
+### Mobile
 
 1. Open the `mobile` folder in Android Studio.
-2. Sync Gradle dependencies.
-3. Start an emulator or connect an Android device.
-4. Run the app module.
+2. Sync Gradle.
+3. Start an emulator.
+4. Run the `app` configuration.
 
-The emulator backend base URL is configured as:
-
-```text
-http://10.0.2.2:8080/
-```
-
-This points the Android emulator to the backend running on the host machine.
-
-For Google sign-in on Android, replace the placeholder value in:
-
-```text
-mobile/app/src/main/res/values/strings.xml
-```
-
-with your Google web client ID:
-
-```xml
-<string name="google_web_client_id">your_web_client_id.apps.googleusercontent.com</string>
-```
-
-The Android OAuth client in Google Cloud must also be configured with:
-
-```text
-Package name: com.example.it342_mobile_auth
-SHA-1: your Android debug or release signing certificate fingerprint
-```
-
-The Android OAuth client is used by Google to recognize the installed app. The app still uses the web client ID in `google_web_client_id` to request the ID token that the backend verifies.
+For a clean Google sign-in test, uninstall the app from the emulator before rerunning after OAuth changes.
 
 ## API Endpoints
 
@@ -293,8 +258,6 @@ POST /api/auth/register
 POST /api/auth/login
 POST /api/auth/google
 ```
-
-Google sign-in is available for regular user accounts only. Admin login remains email/password only. Logout is handled on the frontend/mobile side by clearing the saved token. There is no backend logout endpoint in the current implementation.
 
 ### User Profile
 
@@ -316,9 +279,9 @@ PUT /api/products/{id}/status
 DELETE /api/products/{id}
 ```
 
-Search/filtering is handled on the frontend using loaded catalog data. There is no backend search endpoint in the current implementation.
+`GET /api/products/mine` returns only listings owned by the authenticated user.
 
-`POST /api/products` assigns the product owner from the authenticated JWT token. The frontend and mobile app do not decide the owner in the request payload.
+`POST /api/products` assigns `owner_id` from the authenticated JWT token.
 
 ### Cart
 
@@ -328,8 +291,6 @@ POST /api/cart/add
 PUT /api/cart/{cartItemId}/days
 DELETE /api/cart/{cartItemId}
 ```
-
-The API response field `id` represents the `cart_item_id` primary key in the database.
 
 ### Orders
 
@@ -348,11 +309,21 @@ GET /api/payments/paymongo/mobile/success
 GET /api/payments/paymongo/mobile/cancel
 ```
 
-The mobile PayMongo return endpoints are public redirect endpoints because PayMongo/browser redirects do not send the user's JWT token.
+The mobile PayMongo redirect endpoints are public because PayMongo/browser redirects do not include the user's JWT token.
+
+## Documentation
+
+The final System Design Document is stored at:
+
+```text
+docs/SDD_RentEasy_Nuevas.pdf
+```
+
+The SDD includes the updated requirements, API contract, database design, ERD, component diagram, UI/UX screenshots, project timeline, Google authentication notes, and corrected table of contents.
 
 ## Current Out of Scope
 
-These features are not part of the current final implementation:
+These are not part of the final implementation:
 
 * Backend logout endpoint
 * Backend search endpoint
