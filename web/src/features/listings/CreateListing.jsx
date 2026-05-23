@@ -30,9 +30,15 @@ export default function CreateListing() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => setFormData((prev) => ({ ...prev, imageUrl: reader.result }));
-    reader.readAsDataURL(file);
+    resizeImageForListing(file)
+      .then((imageUrl) => {
+        setFormData((prev) => ({ ...prev, imageUrl }));
+        setError("");
+      })
+      .catch(() => {
+        setFormData((prev) => ({ ...prev, imageUrl: "" }));
+        setError("That image could not be prepared. Please choose a JPG, PNG, or WebP image under 5 MB.");
+      });
   };
 
   const handleSubmit = async (event) => {
@@ -50,10 +56,11 @@ export default function CreateListing() {
     try {
       const token = localStorage.getItem("token");
       const response = await createListing(payload, token);
-      if (!response.ok) throw new Error("Failed to create listing.");
+      if (!response.ok) throw new Error(await listingErrorMessage(response));
       navigate("/my-listings");
-    } catch {
-      setError("Listing was not saved. Make sure the backend is running and you are logged in.");
+    } catch (listingError) {
+      console.error("Create listing failed:", listingError);
+      setError(listingError.message || "Listing was not saved. Make sure the backend is running and you are logged in.");
     } finally {
       setIsLoading(false);
     }
@@ -149,6 +156,61 @@ export default function CreateListing() {
       </section>
     </Page>
   );
+}
+
+function resizeImageForListing(file) {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024) {
+    return Promise.reject(new Error("Invalid listing image."));
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = reject;
+    reader.onload = () => {
+      const image = new Image();
+
+      image.onerror = reject;
+      image.onload = () => {
+        const maxWidth = 1200;
+        const maxHeight = 900;
+        const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+
+      image.src = reader.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function listingErrorMessage(response) {
+  const fallback = "Listing was not saved. Make sure the backend is running and you are logged in.";
+  const details = await response.text();
+
+  try {
+    const json = JSON.parse(details);
+    if (json.detail) return json.detail;
+    if (json.message) return json.message;
+    if (json.error) return json.error;
+  } catch {
+    // Some Spring errors are returned as plain text or HTML.
+  }
+
+  if (response.status >= 500) {
+    return "Listing image could not be saved. In Supabase, make sure products.image_url is set to text, not varchar.";
+  }
+
+  return details?.trim() || fallback;
 }
 
 function Input({ label, ...props }) {

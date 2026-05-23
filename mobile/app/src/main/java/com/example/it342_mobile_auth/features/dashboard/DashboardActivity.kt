@@ -107,7 +107,7 @@ class DashboardActivity : AppCompatActivity() {
                 setImageBitmap(result.bitmap)
                 visibility = View.VISIBLE
             }
-            listingImageStatus?.text = "Photo selected"
+            listingImageStatus?.text = "Photo selected and compressed"
         }
     }
 
@@ -569,12 +569,16 @@ class DashboardActivity : AppCompatActivity() {
                     ownerEmail = email
                 )
                 val response = api.createProduct(authHeader(), request)
-                Toast.makeText(
-                    this@DashboardActivity,
-                    if (response.isSuccessful) "Listing submitted for approval" else "Listing could not be submitted",
-                    Toast.LENGTH_SHORT
-                ).show()
-                if (response.isSuccessful) showMyListings()
+                if (response.isSuccessful) {
+                    Toast.makeText(this@DashboardActivity, "Listing submitted for approval", Toast.LENGTH_SHORT).show()
+                    showMyListings()
+                } else {
+                    Toast.makeText(
+                        this@DashboardActivity,
+                        listingSubmitError(response.code(), response.errorBody()?.string()),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             } catch (exception: Exception) {
                 Toast.makeText(this@DashboardActivity, "Listing error: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
@@ -1239,15 +1243,37 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun loadPickedImage(uri: Uri): PickedListingImage? {
+        val type = contentResolver.getType(uri).orEmpty()
+        if (type.isNotBlank() && !type.startsWith("image/")) return null
+
         val decoded = contentResolver.openInputStream(uri)?.use { stream ->
             BitmapFactory.decodeStream(stream)
         } ?: return null
 
-        val bitmap = scaledBitmap(decoded, 900)
+        val bitmap = scaledBitmap(decoded, 760)
         val output = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 78, output)
+        var quality = 74
+
+        do {
+            output.reset()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, output)
+            quality -= 8
+        } while (output.size() > 350 * 1024 && quality >= 50)
+
         val base64 = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
         return PickedListingImage(bitmap, "data:image/jpeg;base64,$base64")
+    }
+
+    private fun listingSubmitError(statusCode: Int, details: String?): String {
+        if (statusCode >= 500) {
+            return "Listing image could not be saved. In Supabase, set products.image_url to text."
+        }
+
+        return details
+            ?.substringAfter("\"detail\":\"", "")
+            ?.substringBefore("\"")
+            ?.takeIf { it.isNotBlank() }
+            ?: "Listing could not be submitted"
     }
 
     private fun scaledBitmap(source: Bitmap, maxSide: Int): Bitmap {
