@@ -32,6 +32,7 @@ export default function Profile() {
           name: fullName(user) || prev.name,
           email: user.email || prev.email,
           phone: user.phone || prev.phone,
+          avatarUrl: user.avatarUrl || prev.avatarUrl,
         }));
       } catch {
         // Local profile data still keeps the page usable if the backend is offline.
@@ -53,9 +54,9 @@ export default function Profile() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => setProfile((prev) => ({ ...prev, avatarUrl: reader.result || "" }));
-    reader.readAsDataURL(file);
+    resizeProfilePhoto(file)
+      .then((avatarUrl) => setProfile((prev) => ({ ...prev, avatarUrl })))
+      .catch(() => setError("Profile photo could not be prepared. Please choose a JPG, PNG, or WebP image under 5 MB."));
   };
 
   const removePhoto = () => {
@@ -216,7 +217,42 @@ function profilePayload(profile) {
     firstName: parts[0] || "",
     lastName: parts.slice(1).join(" "),
     phone: profile.phone || "",
+    avatarUrl: profile.avatarUrl || "",
   };
+}
+
+function resizeProfilePhoto(file) {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024) {
+    return Promise.reject(new Error("Invalid profile image."));
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = reject;
+    reader.onload = () => {
+      const image = new Image();
+
+      image.onerror = reject;
+      image.onload = () => {
+        const maxSide = 480;
+        const scale = Math.min(maxSide / image.width, maxSide / image.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+
+      image.src = reader.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
 

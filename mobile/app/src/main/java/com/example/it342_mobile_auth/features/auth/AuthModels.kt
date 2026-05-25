@@ -20,13 +20,15 @@ data class UserDto(
     val firstName: String? = null,
     val lastName: String? = null,
     val phone: String? = null,
+    val avatarUrl: String? = null,
     val role: String? = null
 )
 
 data class UserProfileRequest(
     val firstName: String,
     val lastName: String,
-    val phone: String
+    val phone: String,
+    val avatarUrl: String
 )
 
 data class ProductDto(

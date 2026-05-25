@@ -2,12 +2,11 @@ import { createElement, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { List, LogOut, PackagePlus, Search, ShoppingCart, Store, UserRound } from "lucide-react";
 import { apiFetch, authHeaders, getAuthToken } from "./apiClient";
-import { currentUserEmail, getProfile, setLocalCart, userInitials } from "./rentEasyData";
+import { currentUserEmail, setLocalCart } from "./rentEasyData";
 
 export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
   const navigate = useNavigate();
   const email = currentUserEmail();
-  const profile = getProfile();
   const [databaseCartCount, setDatabaseCartCount] = useState(0);
   const count = cartCount ?? databaseCartCount;
 
@@ -99,11 +98,7 @@ export function SiteHeader({ searchValue = "", onSearchChange, cartCount }) {
           className="rent-icon-button grid h-11 w-11 place-items-center overflow-hidden rounded-lg border border-[#D0BCA0] bg-[#FDFBF9] text-[#4A3428] hover:border-[#4A3428] hover:bg-white"
           title="Profile"
         >
-          {profile.avatarUrl ? (
-            <img src={profile.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
-          ) : (
-            <span className="text-xs font-black">{userInitials(email)}</span>
-          )}
+          <UserRound size={18} />
         </button>
         <button
           type="button"

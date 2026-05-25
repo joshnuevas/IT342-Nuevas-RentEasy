@@ -584,14 +584,7 @@ class DashboardActivity : AppCompatActivity() {
         content.addView(card().apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            addView(TextView(context).apply {
-                text = profileInitials(ownerName(product))
-                gravity = Gravity.CENTER
-                textSize = 30f
-                setTypeface(Typeface.DEFAULT, Typeface.BOLD)
-                setTextColor(Color.WHITE)
-                background = rounded(brown, dp(16))
-            }, LinearLayout.LayoutParams(dp(96), dp(96)).apply {
+            addView(profileAvatarView(ownerName(product), product.owner?.avatarUrl.orEmpty(), dp(96)), LinearLayout.LayoutParams(dp(96), dp(96)).apply {
                 bottomMargin = dp(14)
             })
             addView(title(ownerName(product), 22f))
@@ -895,6 +888,15 @@ class DashboardActivity : AppCompatActivity() {
                 if (remoteName != "Not provided") name.setText(remoteName)
                 remoteProfile.email?.let { profileEmail.setText(it) }
                 remoteProfile.phone?.let { phone.setText(it) }
+                remoteProfile.avatarUrl?.takeIf { it.isNotBlank() }?.let { avatarUrl ->
+                    selectedProfileImageDataUrl = avatarUrl
+                    prefs.edit().putString("profile_avatar_url", avatarUrl).apply()
+                    decodeDataUrlBitmap(avatarUrl)?.let { bitmap ->
+                        profileImagePreview?.setImageBitmap(bitmap)
+                        profileImagePreview?.visibility = View.VISIBLE
+                        profileImageStatus?.text = "Profile photo selected"
+                    }
+                }
             }
         }
 
@@ -917,7 +919,7 @@ class DashboardActivity : AppCompatActivity() {
                     .putString("profile_zip", zip.text.toString())
                     .putString("profile_avatar_url", selectedProfileImageDataUrl)
                     .apply()
-                saveRemoteProfile(name.text.toString(), phone.text.toString())
+                saveRemoteProfile(name.text.toString(), phone.text.toString(), selectedProfileImageDataUrl)
                 Toast.makeText(this@DashboardActivity, "Profile saved", Toast.LENGTH_SHORT).show()
             }, fullWidthButtonParams())
         })
@@ -984,6 +986,52 @@ class DashboardActivity : AppCompatActivity() {
                     profileImageStatus?.text = "No profile photo selected"
                 }
             ))
+        }
+    }
+
+    private fun profileAvatarView(name: String, avatarUrl: String, sizePx: Int): FrameLayout {
+        return FrameLayout(this).apply {
+            background = rounded(brown, dp(16))
+            clipToOutline = true
+
+            val fallback = TextView(context).apply {
+                text = profileInitials(name)
+                gravity = Gravity.CENTER
+                textSize = 30f
+                setTypeface(Typeface.DEFAULT, Typeface.BOLD)
+                setTextColor(Color.WHITE)
+            }
+            val image = ImageView(context).apply {
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                visibility = View.GONE
+            }
+
+            addView(fallback, FrameLayout.LayoutParams(sizePx, sizePx))
+            addView(image, FrameLayout.LayoutParams(sizePx, sizePx))
+
+            val url = avatarUrl.trim()
+            if (url.isBlank()) return@apply
+
+            val localBitmap = decodeDataUrlBitmap(url)
+            if (localBitmap != null) {
+                image.setImageBitmap(localBitmap)
+                image.visibility = View.VISIBLE
+                return@apply
+            }
+
+            lifecycleScope.launch {
+                val bitmap = withContext(Dispatchers.IO) {
+                    try {
+                        URL(url).openStream().use { BitmapFactory.decodeStream(it) }
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                if (bitmap != null) {
+                    image.setImageBitmap(bitmap)
+                    image.visibility = View.VISIBLE
+                }
+            }
         }
     }
 
@@ -1175,13 +1223,14 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveRemoteProfile(name: String, phone: String) {
+    private fun saveRemoteProfile(name: String, phone: String, avatarUrl: String) {
         lifecycleScope.launch {
             val parts = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
             val request = UserProfileRequest(
                 firstName = parts.firstOrNull().orEmpty(),
                 lastName = parts.drop(1).joinToString(" "),
-                phone = phone.trim()
+                phone = phone.trim(),
+                avatarUrl = avatarUrl
             )
 
             try {

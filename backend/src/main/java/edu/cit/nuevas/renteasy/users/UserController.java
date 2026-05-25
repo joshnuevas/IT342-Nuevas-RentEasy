@@ -48,6 +48,7 @@ public class UserController {
                     user.setFirstName(clean(request.get("firstName")));
                     user.setLastName(clean(request.get("lastName")));
                     user.setPhone(clean(request.get("phone")));
+                    user.setAvatarUrl(clean(request.get("avatarUrl")));
                     return ResponseEntity.ok(userRepository.save(user));
                 })
                 .orElseGet(() -> ResponseEntity.status(401).body(Map.of("message", "Unauthorized")));

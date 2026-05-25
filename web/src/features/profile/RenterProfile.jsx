@@ -70,8 +70,12 @@ export default function RenterProfile() {
 
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
           <aside className="h-fit rounded-lg border border-[#D0BCA0] bg-white p-6 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-lg bg-[#4A3428] text-3xl font-black text-white ring-1 ring-[#D0BCA0]">
-              {initials(profile.name)}
+            <div className="mx-auto mb-4 flex h-28 w-28 items-center justify-center overflow-hidden rounded-lg bg-[#4A3428] text-3xl font-black text-white ring-1 ring-[#D0BCA0]">
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={`${profile.name} profile`} className="h-full w-full object-cover" />
+              ) : (
+                initials(profile.name)
+              )}
             </div>
             <h2 className="font-black text-[#4A3428]">{profile.name}</h2>
             <p className="mt-1 text-sm text-[#8C6A48]">{profile.email}</p>
@@ -144,6 +148,7 @@ function ownerProfile(owner) {
     email: owner?.email || "Not provided",
     phone: owner?.phone || "Not provided",
     createdAt: formatDate(owner?.createdAt),
+    avatarUrl: owner?.avatarUrl || "",
   };
 }
 
