@@ -5,7 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    const val BASE_URL = "http://10.0.2.2:8080/" // Emulator localhost
+    const val BASE_URL = "https://it342-nuevas-renteasy-1.onrender.com/"
 
     fun mobilePaymentReturnUrl(status: String, reference: String): String {
         return "${BASE_URL}api/payments/paymongo/mobile/$status?reference=$reference"
